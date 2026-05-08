@@ -7,6 +7,7 @@ import { PropsWithChildren } from "react";
 const nav = [
   { href: "/", label: "Dashboard" },
   { href: "/administradoras", label: "Administradoras" },
+  { href: "/vendas", label: "Vendas" },
 ];
 
 function NavLink({ href, label }: { href: string; label: string }) {

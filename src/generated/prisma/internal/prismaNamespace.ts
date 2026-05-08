@@ -384,7 +384,8 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 
 export const ModelName = {
-  Administradora: 'Administradora'
+  Administradora: 'Administradora',
+  Venda: 'Venda'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -400,7 +401,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "administradora"
+    modelProps: "administradora" | "venda"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -478,6 +479,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Venda: {
+      payload: Prisma.$VendaPayload<ExtArgs>
+      fields: Prisma.VendaFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.VendaFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VendaPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.VendaFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VendaPayload>
+        }
+        findFirst: {
+          args: Prisma.VendaFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VendaPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.VendaFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VendaPayload>
+        }
+        findMany: {
+          args: Prisma.VendaFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VendaPayload>[]
+        }
+        create: {
+          args: Prisma.VendaCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VendaPayload>
+        }
+        createMany: {
+          args: Prisma.VendaCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.VendaCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VendaPayload>[]
+        }
+        delete: {
+          args: Prisma.VendaDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VendaPayload>
+        }
+        update: {
+          args: Prisma.VendaUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VendaPayload>
+        }
+        deleteMany: {
+          args: Prisma.VendaDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.VendaUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.VendaUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VendaPayload>[]
+        }
+        upsert: {
+          args: Prisma.VendaUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VendaPayload>
+        }
+        aggregate: {
+          args: Prisma.VendaAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateVenda>
+        }
+        groupBy: {
+          args: Prisma.VendaGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.VendaGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.VendaCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.VendaCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -536,6 +611,22 @@ export const AdministradoraScalarFieldEnum = {
 export type AdministradoraScalarFieldEnum = (typeof AdministradoraScalarFieldEnum)[keyof typeof AdministradoraScalarFieldEnum]
 
 
+export const VendaScalarFieldEnum = {
+  id: 'id',
+  administradoraId: 'administradoraId',
+  status: 'status',
+  titulo: 'titulo',
+  descricao: 'descricao',
+  valorCentavos: 'valorCentavos',
+  dataVenda: 'dataVenda',
+  observacoes: 'observacoes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type VendaScalarFieldEnum = (typeof VendaScalarFieldEnum)[keyof typeof VendaScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -573,9 +664,23 @@ export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel
 
 
 /**
+ * Reference to a field of type 'VendaStatus'
+ */
+export type EnumVendaStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'VendaStatus'>
+    
+
+
+/**
  * Reference to a field of type 'Int'
  */
 export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+    
+
+
+/**
+ * Reference to a field of type 'Float'
+ */
+export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
     
 
 /**
@@ -689,6 +794,7 @@ export type PrismaClientOptions = ({
 }
 export type GlobalOmitConfig = {
   administradora?: Prisma.AdministradoraOmit
+  venda?: Prisma.VendaOmit
 }
 
 /* Types for Logging */

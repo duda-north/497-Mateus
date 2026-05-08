@@ -270,6 +270,7 @@ export type AdministradoraWhereInput = {
   regrasOperacionaisJson?: Prisma.StringNullableFilter<"Administradora"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Administradora"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Administradora"> | Date | string
+  vendas?: Prisma.VendaListRelationFilter
 }
 
 export type AdministradoraOrderByWithRelationInput = {
@@ -289,6 +290,7 @@ export type AdministradoraOrderByWithRelationInput = {
   regrasOperacionaisJson?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  vendas?: Prisma.VendaOrderByRelationAggregateInput
 }
 
 export type AdministradoraWhereUniqueInput = Prisma.AtLeast<{
@@ -311,6 +313,7 @@ export type AdministradoraWhereUniqueInput = Prisma.AtLeast<{
   regrasOperacionaisJson?: Prisma.StringNullableFilter<"Administradora"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Administradora"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Administradora"> | Date | string
+  vendas?: Prisma.VendaListRelationFilter
 }, "id" | "cnpj">
 
 export type AdministradoraOrderByWithAggregationInput = {
@@ -374,6 +377,7 @@ export type AdministradoraCreateInput = {
   regrasOperacionaisJson?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  vendas?: Prisma.VendaCreateNestedManyWithoutAdministradoraInput
 }
 
 export type AdministradoraUncheckedCreateInput = {
@@ -393,6 +397,7 @@ export type AdministradoraUncheckedCreateInput = {
   regrasOperacionaisJson?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  vendas?: Prisma.VendaUncheckedCreateNestedManyWithoutAdministradoraInput
 }
 
 export type AdministradoraUpdateInput = {
@@ -412,6 +417,7 @@ export type AdministradoraUpdateInput = {
   regrasOperacionaisJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  vendas?: Prisma.VendaUpdateManyWithoutAdministradoraNestedInput
 }
 
 export type AdministradoraUncheckedUpdateInput = {
@@ -431,6 +437,7 @@ export type AdministradoraUncheckedUpdateInput = {
   regrasOperacionaisJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  vendas?: Prisma.VendaUncheckedUpdateManyWithoutAdministradoraNestedInput
 }
 
 export type AdministradoraCreateManyInput = {
@@ -547,6 +554,11 @@ export type AdministradoraMinOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
 }
 
+export type AdministradoraScalarRelationFilter = {
+  is?: Prisma.AdministradoraWhereInput
+  isNot?: Prisma.AdministradoraWhereInput
+}
+
 export type StringFieldUpdateOperationsInput = {
   set?: string
 }
@@ -559,6 +571,141 @@ export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
 }
 
+export type AdministradoraCreateNestedOneWithoutVendasInput = {
+  create?: Prisma.XOR<Prisma.AdministradoraCreateWithoutVendasInput, Prisma.AdministradoraUncheckedCreateWithoutVendasInput>
+  connectOrCreate?: Prisma.AdministradoraCreateOrConnectWithoutVendasInput
+  connect?: Prisma.AdministradoraWhereUniqueInput
+}
+
+export type AdministradoraUpdateOneRequiredWithoutVendasNestedInput = {
+  create?: Prisma.XOR<Prisma.AdministradoraCreateWithoutVendasInput, Prisma.AdministradoraUncheckedCreateWithoutVendasInput>
+  connectOrCreate?: Prisma.AdministradoraCreateOrConnectWithoutVendasInput
+  upsert?: Prisma.AdministradoraUpsertWithoutVendasInput
+  connect?: Prisma.AdministradoraWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.AdministradoraUpdateToOneWithWhereWithoutVendasInput, Prisma.AdministradoraUpdateWithoutVendasInput>, Prisma.AdministradoraUncheckedUpdateWithoutVendasInput>
+}
+
+export type AdministradoraCreateWithoutVendasInput = {
+  id?: string
+  nome: string
+  cnpj: string
+  telefone?: string | null
+  email?: string | null
+  contatoPrincipal?: string | null
+  enderecoLogradouro?: string | null
+  enderecoNumero?: string | null
+  enderecoComplemento?: string | null
+  enderecoBairro?: string | null
+  enderecoCidade?: string | null
+  enderecoUf?: string | null
+  enderecoCep?: string | null
+  regrasOperacionaisJson?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type AdministradoraUncheckedCreateWithoutVendasInput = {
+  id?: string
+  nome: string
+  cnpj: string
+  telefone?: string | null
+  email?: string | null
+  contatoPrincipal?: string | null
+  enderecoLogradouro?: string | null
+  enderecoNumero?: string | null
+  enderecoComplemento?: string | null
+  enderecoBairro?: string | null
+  enderecoCidade?: string | null
+  enderecoUf?: string | null
+  enderecoCep?: string | null
+  regrasOperacionaisJson?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type AdministradoraCreateOrConnectWithoutVendasInput = {
+  where: Prisma.AdministradoraWhereUniqueInput
+  create: Prisma.XOR<Prisma.AdministradoraCreateWithoutVendasInput, Prisma.AdministradoraUncheckedCreateWithoutVendasInput>
+}
+
+export type AdministradoraUpsertWithoutVendasInput = {
+  update: Prisma.XOR<Prisma.AdministradoraUpdateWithoutVendasInput, Prisma.AdministradoraUncheckedUpdateWithoutVendasInput>
+  create: Prisma.XOR<Prisma.AdministradoraCreateWithoutVendasInput, Prisma.AdministradoraUncheckedCreateWithoutVendasInput>
+  where?: Prisma.AdministradoraWhereInput
+}
+
+export type AdministradoraUpdateToOneWithWhereWithoutVendasInput = {
+  where?: Prisma.AdministradoraWhereInput
+  data: Prisma.XOR<Prisma.AdministradoraUpdateWithoutVendasInput, Prisma.AdministradoraUncheckedUpdateWithoutVendasInput>
+}
+
+export type AdministradoraUpdateWithoutVendasInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  cnpj?: Prisma.StringFieldUpdateOperationsInput | string
+  telefone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contatoPrincipal?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  enderecoLogradouro?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  enderecoNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  enderecoComplemento?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  enderecoBairro?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  enderecoCidade?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  enderecoUf?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  enderecoCep?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  regrasOperacionaisJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type AdministradoraUncheckedUpdateWithoutVendasInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  nome?: Prisma.StringFieldUpdateOperationsInput | string
+  cnpj?: Prisma.StringFieldUpdateOperationsInput | string
+  telefone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contatoPrincipal?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  enderecoLogradouro?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  enderecoNumero?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  enderecoComplemento?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  enderecoBairro?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  enderecoCidade?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  enderecoUf?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  enderecoCep?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  regrasOperacionaisJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+
+/**
+ * Count Type AdministradoraCountOutputType
+ */
+
+export type AdministradoraCountOutputType = {
+  vendas: number
+}
+
+export type AdministradoraCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  vendas?: boolean | AdministradoraCountOutputTypeCountVendasArgs
+}
+
+/**
+ * AdministradoraCountOutputType without action
+ */
+export type AdministradoraCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AdministradoraCountOutputType
+   */
+  select?: Prisma.AdministradoraCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * AdministradoraCountOutputType without action
+ */
+export type AdministradoraCountOutputTypeCountVendasArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.VendaWhereInput
+}
 
 
 export type AdministradoraSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -578,6 +725,8 @@ export type AdministradoraSelect<ExtArgs extends runtime.Types.Extensions.Intern
   regrasOperacionaisJson?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  vendas?: boolean | Prisma.Administradora$vendasArgs<ExtArgs>
+  _count?: boolean | Prisma.AdministradoraCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["administradora"]>
 
 export type AdministradoraSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -638,10 +787,18 @@ export type AdministradoraSelectScalar = {
 }
 
 export type AdministradoraOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nome" | "cnpj" | "telefone" | "email" | "contatoPrincipal" | "enderecoLogradouro" | "enderecoNumero" | "enderecoComplemento" | "enderecoBairro" | "enderecoCidade" | "enderecoUf" | "enderecoCep" | "regrasOperacionaisJson" | "createdAt" | "updatedAt", ExtArgs["result"]["administradora"]>
+export type AdministradoraInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  vendas?: boolean | Prisma.Administradora$vendasArgs<ExtArgs>
+  _count?: boolean | Prisma.AdministradoraCountOutputTypeDefaultArgs<ExtArgs>
+}
+export type AdministradoraIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
+export type AdministradoraIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
 
 export type $AdministradoraPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Administradora"
-  objects: {}
+  objects: {
+    vendas: Prisma.$VendaPayload<ExtArgs>[]
+  }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     nome: string
@@ -1053,6 +1210,7 @@ readonly fields: AdministradoraFieldRefs;
  */
 export interface Prisma__AdministradoraClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  vendas<T extends Prisma.Administradora$vendasArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Administradora$vendasArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$VendaPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1115,6 +1273,10 @@ export type AdministradoraFindUniqueArgs<ExtArgs extends runtime.Types.Extension
    */
   omit?: Prisma.AdministradoraOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AdministradoraInclude<ExtArgs> | null
+  /**
    * Filter, which Administradora to fetch.
    */
   where: Prisma.AdministradoraWhereUniqueInput
@@ -1133,6 +1295,10 @@ export type AdministradoraFindUniqueOrThrowArgs<ExtArgs extends runtime.Types.Ex
    */
   omit?: Prisma.AdministradoraOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AdministradoraInclude<ExtArgs> | null
+  /**
    * Filter, which Administradora to fetch.
    */
   where: Prisma.AdministradoraWhereUniqueInput
@@ -1150,6 +1316,10 @@ export type AdministradoraFindFirstArgs<ExtArgs extends runtime.Types.Extensions
    * Omit specific fields from the Administradora
    */
   omit?: Prisma.AdministradoraOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AdministradoraInclude<ExtArgs> | null
   /**
    * Filter, which Administradora to fetch.
    */
@@ -1199,6 +1369,10 @@ export type AdministradoraFindFirstOrThrowArgs<ExtArgs extends runtime.Types.Ext
    */
   omit?: Prisma.AdministradoraOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AdministradoraInclude<ExtArgs> | null
+  /**
    * Filter, which Administradora to fetch.
    */
   where?: Prisma.AdministradoraWhereInput
@@ -1246,6 +1420,10 @@ export type AdministradoraFindManyArgs<ExtArgs extends runtime.Types.Extensions.
    * Omit specific fields from the Administradora
    */
   omit?: Prisma.AdministradoraOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AdministradoraInclude<ExtArgs> | null
   /**
    * Filter, which Administradoras to fetch.
    */
@@ -1295,6 +1473,10 @@ export type AdministradoraCreateArgs<ExtArgs extends runtime.Types.Extensions.In
    */
   omit?: Prisma.AdministradoraOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AdministradoraInclude<ExtArgs> | null
+  /**
    * The data needed to create a Administradora.
    */
   data: Prisma.XOR<Prisma.AdministradoraCreateInput, Prisma.AdministradoraUncheckedCreateInput>
@@ -1340,6 +1522,10 @@ export type AdministradoraUpdateArgs<ExtArgs extends runtime.Types.Extensions.In
    * Omit specific fields from the Administradora
    */
   omit?: Prisma.AdministradoraOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AdministradoraInclude<ExtArgs> | null
   /**
    * The data needed to update a Administradora.
    */
@@ -1407,6 +1593,10 @@ export type AdministradoraUpsertArgs<ExtArgs extends runtime.Types.Extensions.In
    */
   omit?: Prisma.AdministradoraOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AdministradoraInclude<ExtArgs> | null
+  /**
    * The filter to search for the Administradora to update in case it exists.
    */
   where: Prisma.AdministradoraWhereUniqueInput
@@ -1433,6 +1623,10 @@ export type AdministradoraDeleteArgs<ExtArgs extends runtime.Types.Extensions.In
    */
   omit?: Prisma.AdministradoraOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AdministradoraInclude<ExtArgs> | null
+  /**
    * Filter which Administradora to delete.
    */
   where: Prisma.AdministradoraWhereUniqueInput
@@ -1453,6 +1647,30 @@ export type AdministradoraDeleteManyArgs<ExtArgs extends runtime.Types.Extension
 }
 
 /**
+ * Administradora.vendas
+ */
+export type Administradora$vendasArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Venda
+   */
+  select?: Prisma.VendaSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Venda
+   */
+  omit?: Prisma.VendaOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.VendaInclude<ExtArgs> | null
+  where?: Prisma.VendaWhereInput
+  orderBy?: Prisma.VendaOrderByWithRelationInput | Prisma.VendaOrderByWithRelationInput[]
+  cursor?: Prisma.VendaWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.VendaScalarFieldEnum | Prisma.VendaScalarFieldEnum[]
+}
+
+/**
  * Administradora without action
  */
 export type AdministradoraDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1464,4 +1682,8 @@ export type AdministradoraDefaultArgs<ExtArgs extends runtime.Types.Extensions.I
    * Omit specific fields from the Administradora
    */
   omit?: Prisma.AdministradoraOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AdministradoraInclude<ExtArgs> | null
 }

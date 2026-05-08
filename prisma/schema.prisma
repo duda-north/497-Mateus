@@ -12,6 +12,13 @@ datasource db {
   provider = "sqlite"
 }
 
+enum VendaStatus {
+  RASCUNHO
+  ENVIADA
+  FECHADA
+  CANCELADA
+}
+
 model Administradora {
   id              String   @id @default(cuid())
   nome            String
@@ -30,6 +37,28 @@ model Administradora {
 
   regrasOperacionaisJson String? // JSON (string) para regras por administradora
 
+  vendas          Venda[]
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+}
+
+model Venda {
+  id              String      @id @default(cuid())
+  administradoraId String
+  administradora  Administradora @relation(fields: [administradoraId], references: [id])
+
+  status          VendaStatus @default(RASCUNHO)
+  titulo          String
+  descricao       String?
+  valorCentavos   Int?
+  dataVenda       DateTime?
+  observacoes     String?
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([administradoraId])
+  @@index([status])
+  @@index([createdAt])
 }
