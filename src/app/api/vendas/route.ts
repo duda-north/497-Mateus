@@ -1,3 +1,4 @@
+import { assertPlanoBelongsToAdministradora } from "@/lib/assert-plano-administradora";
 import { prisma } from "@/lib/prisma";
 
 function toVendaStatus(v: unknown) {
@@ -21,6 +22,9 @@ export async function GET(req: Request) {
       administradora: {
         select: { id: true, nome: true, cnpj: true },
       },
+      plano: {
+        select: { id: true, nome: true, tipoBem: true },
+      },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -37,11 +41,26 @@ export async function POST(req: Request) {
     valorCentavos?: number | null;
     dataVenda?: string | null;
     observacoes?: string | null;
+    planoId?: string | null;
   };
 
   const administradoraId = body.administradoraId?.trim();
   if (!administradoraId) {
     return Response.json({ error: "Administradora é obrigatória." }, { status: 400 });
+  }
+
+  const adm = await prisma.administradora.findUnique({ where: { id: administradoraId } });
+  if (!adm) {
+    return Response.json({ error: "Administradora não encontrada." }, { status: 400 });
+  }
+
+  const planoIdNorm =
+    body.planoId === null || body.planoId === undefined || body.planoId === ""
+      ? null
+      : body.planoId.trim();
+  const planoCheck = await assertPlanoBelongsToAdministradora(planoIdNorm, administradoraId);
+  if (!planoCheck.ok) {
+    return Response.json({ error: planoCheck.message }, { status: 400 });
   }
 
   const titulo = body.titulo?.trim();
@@ -82,10 +101,14 @@ export async function POST(req: Request) {
         valorCentavos: valorCentavos === null ? null : (valorCentavos as number),
         dataVenda,
         observacoes: body.observacoes?.trim() ? body.observacoes.trim() : null,
+        planoId: planoIdNorm,
       },
       include: {
         administradora: {
           select: { id: true, nome: true, cnpj: true },
+        },
+        plano: {
+          select: { id: true, nome: true, tipoBem: true },
         },
       },
     });

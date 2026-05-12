@@ -52,6 +52,7 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   Administradora: 'Administradora',
+  Plano: 'Plano',
   Venda: 'Venda'
 } as const
 
@@ -90,9 +91,26 @@ export const AdministradoraScalarFieldEnum = {
 export type AdministradoraScalarFieldEnum = (typeof AdministradoraScalarFieldEnum)[keyof typeof AdministradoraScalarFieldEnum]
 
 
+export const PlanoScalarFieldEnum = {
+  id: 'id',
+  administradoraId: 'administradoraId',
+  nome: 'nome',
+  tipoBem: 'tipoBem',
+  valorCreditoCentavos: 'valorCreditoCentavos',
+  regrasComissaoJson: 'regrasComissaoJson',
+  regrasRecebimentoJson: 'regrasRecebimentoJson',
+  regrasEstornoJson: 'regrasEstornoJson',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PlanoScalarFieldEnum = (typeof PlanoScalarFieldEnum)[keyof typeof PlanoScalarFieldEnum]
+
+
 export const VendaScalarFieldEnum = {
   id: 'id',
   administradoraId: 'administradoraId',
+  planoId: 'planoId',
   status: 'status',
   titulo: 'titulo',
   descricao: 'descricao',

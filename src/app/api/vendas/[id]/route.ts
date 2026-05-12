@@ -1,3 +1,4 @@
+import { assertPlanoBelongsToAdministradora } from "@/lib/assert-plano-administradora";
 import { prisma } from "@/lib/prisma";
 
 function toVendaStatus(v: unknown) {
@@ -18,6 +19,9 @@ export async function GET(_req: Request, { params }: Params) {
       administradora: {
         select: { id: true, nome: true, cnpj: true },
       },
+      plano: {
+        select: { id: true, nome: true, tipoBem: true },
+      },
     },
   });
   if (!venda) {
@@ -37,7 +41,13 @@ export async function PUT(req: Request, { params }: Params) {
     valorCentavos: number | null;
     dataVenda: string | null;
     observacoes: string | null;
+    planoId: string | null;
   }>;
+
+  const existing = await prisma.venda.findUnique({ where: { id } });
+  if (!existing) {
+    return Response.json({ error: "Venda não encontrada." }, { status: 404 });
+  }
 
   if (body.administradoraId !== undefined && !body.administradoraId.trim()) {
     return Response.json({ error: "Administradora não pode ser vazia." }, { status: 400 });
@@ -60,6 +70,31 @@ export async function PUT(req: Request, { params }: Params) {
     if (Number.isNaN(d.getTime())) {
       return Response.json({ error: "Data inválida." }, { status: 400 });
     }
+  }
+
+  const nextAdministradoraId =
+    body.administradoraId !== undefined ? body.administradoraId.trim() : existing.administradoraId;
+
+  if (body.administradoraId !== undefined) {
+    const adm = await prisma.administradora.findUnique({ where: { id: nextAdministradoraId } });
+    if (!adm) {
+      return Response.json({ error: "Administradora não encontrada." }, { status: 400 });
+    }
+  }
+
+  const finalPlanoId =
+    body.planoId !== undefined
+      ? body.planoId === null || body.planoId === ""
+        ? null
+        : body.planoId.trim()
+      : existing.planoId;
+
+  const planoCheck = await assertPlanoBelongsToAdministradora(
+    finalPlanoId,
+    nextAdministradoraId,
+  );
+  if (!planoCheck.ok) {
+    return Response.json({ error: planoCheck.message }, { status: 400 });
   }
 
   const dataVenda =
@@ -88,10 +123,14 @@ export async function PUT(req: Request, { params }: Params) {
         ...(body.observacoes !== undefined
           ? { observacoes: body.observacoes?.trim() ? body.observacoes.trim() : null }
           : {}),
+        ...(body.planoId !== undefined ? { planoId: finalPlanoId } : {}),
       },
       include: {
         administradora: {
           select: { id: true, nome: true, cnpj: true },
+        },
+        plano: {
+          select: { id: true, nome: true, tipoBem: true },
         },
       },
     });

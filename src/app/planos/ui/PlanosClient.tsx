@@ -3,16 +3,26 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
+type AdministradoraMini = {
+  id: string;
+  nome: string;
+  cnpj: string;
+};
+
+type Plano = {
+  id: string;
+  administradoraId: string;
+  administradora: AdministradoraMini;
+  nome: string;
+  tipoBem: string;
+  valorCreditoCentavos: number | null;
+  createdAt: string;
+};
+
 type Administradora = {
   id: string;
   nome: string;
   cnpj: string;
-  telefone: string | null;
-  email: string | null;
-  contatoPrincipal: string | null;
-  enderecoCidade: string | null;
-  enderecoUf: string | null;
-  createdAt: string;
 };
 
 async function api<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
@@ -28,18 +38,29 @@ async function api<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
 const controlClass =
   "h-10 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 outline-none focus-visible:border-zinc-400 focus-visible:ring-2 focus-visible:ring-zinc-300/60";
 
-export default function AdministradorasClient() {
-  const [items, setItems] = useState<Administradora[]>([]);
+function formatMoneyPtBrFromCentavos(v: number | null) {
+  if (v === null) return "—";
+  return (v / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+export default function PlanosClient() {
+  const [items, setItems] = useState<Plano[]>([]);
+  const [administradoras, setAdministradoras] = useState<Administradora[]>([]);
   const [loading, setLoading] = useState(true);
-  const [query, setQuery] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [administradoraId, setAdministradoraId] = useState("");
 
   async function reload() {
     setLoading(true);
     setError(null);
     try {
-      const data = await api<Administradora[]>("/api/administradoras");
-      setItems(data);
+      const [adms, planos] = await Promise.all([
+        api<Administradora[]>("/api/administradoras"),
+        api<Plano[]>("/api/planos"),
+      ]);
+      setAdministradoras(adms);
+      setItems(planos);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro ao carregar.");
     } finally {
@@ -53,17 +74,18 @@ export default function AdministradorasClient() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return items;
-    return items.filter((a) => {
-      const hay = `${a.nome} ${a.cnpj} ${a.email ?? ""} ${a.telefone ?? ""}`.toLowerCase();
+    return items.filter((p) => {
+      if (administradoraId && p.administradoraId !== administradoraId) return false;
+      if (!q) return true;
+      const hay = `${p.nome} ${p.tipoBem} ${p.administradora?.nome ?? ""}`.toLowerCase();
       return hay.includes(q);
     });
-  }, [items, query]);
+  }, [items, query, administradoraId]);
 
   async function onDelete(id: string) {
-    if (!confirm("Excluir administradora?")) return;
+    if (!confirm("Excluir este plano?")) return;
     try {
-      await api<void>(`/api/administradoras/${id}`, { method: "DELETE" });
+      await api<void>(`/api/planos/${id}`, { method: "DELETE" });
       setItems((prev) => prev.filter((x) => x.id !== id));
     } catch (e) {
       alert(e instanceof Error ? e.message : "Erro ao excluir.");
@@ -72,20 +94,32 @@ export default function AdministradorasClient() {
 
   return (
     <div className="rounded-2xl border border-zinc-200 bg-white p-5">
-      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+      <div className="flex flex-col justify-between gap-3 lg:flex-row lg:items-center">
         <div className="text-sm font-medium">Lista</div>
-        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+        <div className="flex w-full flex-col gap-2 lg:w-auto lg:flex-row lg:items-center">
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Buscar por nome, CNPJ, e-mail..."
-            className={`${controlClass} sm:w-72`}
+            placeholder="Buscar por nome, tipo de bem, administradora..."
+            className={`${controlClass} lg:w-72`}
           />
+          <select
+            value={administradoraId}
+            onChange={(e) => setAdministradoraId(e.target.value)}
+            className={`${controlClass} lg:w-64`}
+          >
+            <option value="">Todas administradoras</option>
+            {administradoras.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.nome}
+              </option>
+            ))}
+          </select>
           <Link
-            href="/administradoras/nova"
+            href="/planos/nova"
             className="inline-flex h-10 items-center justify-center rounded-xl bg-zinc-900 px-4 text-sm font-medium text-white hover:bg-zinc-800"
           >
-            Nova administradora
+            Novo plano
           </Link>
         </div>
       </div>
@@ -93,24 +127,20 @@ export default function AdministradorasClient() {
       {error ? (
         <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
           {error}{" "}
-          <button
-            type="button"
-            className="underline"
-            onClick={() => void reload()}
-          >
+          <button type="button" className="underline" onClick={() => void reload()}>
             Tentar novamente
           </button>
         </div>
       ) : null}
 
       <div className="mt-4 overflow-x-auto">
-        <table className="w-full min-w-[900px] text-left text-sm">
+        <table className="w-full min-w-[960px] text-left text-sm">
           <thead className="text-xs text-zinc-500">
             <tr className="border-b border-zinc-200">
               <th className="py-3 pr-4 font-medium">Nome</th>
-              <th className="py-3 pr-4 font-medium">CNPJ</th>
-              <th className="py-3 pr-4 font-medium">Contato</th>
-              <th className="py-3 pr-4 font-medium">Cidade/UF</th>
+              <th className="py-3 pr-4 font-medium">Administradora</th>
+              <th className="py-3 pr-4 font-medium">Tipo de bem</th>
+              <th className="py-3 pr-4 font-medium">Crédito</th>
               <th className="py-3 pr-4 font-medium">Criado em</th>
               <th className="py-3 pr-0 text-right font-medium">Ações</th>
             </tr>
@@ -126,41 +156,38 @@ export default function AdministradorasClient() {
               <tr>
                 <td className="py-6 text-zinc-600" colSpan={6}>
                   {items.length === 0
-                    ? "Nenhuma administradora cadastrada."
-                    : "Nenhum resultado para a busca atual."}
+                    ? "Nenhum plano cadastrado."
+                    : "Nenhum resultado para os filtros atuais."}
                 </td>
               </tr>
             ) : (
-              filtered.map((a) => (
-                <tr key={a.id} className="border-b border-zinc-100">
-                  <td className="py-3 pr-4 font-medium text-zinc-900">{a.nome}</td>
-                  <td className="py-3 pr-4 text-zinc-700">{a.cnpj}</td>
+              filtered.map((p) => (
+                <tr key={p.id} className="border-b border-zinc-100">
+                  <td className="py-3 pr-4 font-medium text-zinc-900">{p.nome}</td>
                   <td className="py-3 pr-4 text-zinc-700">
                     <div className="leading-5">
-                      <div className="text-zinc-800">
-                        {a.contatoPrincipal || "—"}
-                      </div>
-                      <div className="text-xs text-zinc-500">{a.email || "—"}</div>
+                      <div className="text-zinc-800">{p.administradora?.nome ?? "—"}</div>
+                      <div className="text-xs text-zinc-500">{p.administradora?.cnpj ?? ""}</div>
                     </div>
                   </td>
+                  <td className="py-3 pr-4 text-zinc-700">{p.tipoBem}</td>
                   <td className="py-3 pr-4 text-zinc-700">
-                    {a.enderecoCidade || "—"}
-                    {a.enderecoUf ? `/${a.enderecoUf}` : ""}
+                    {formatMoneyPtBrFromCentavos(p.valorCreditoCentavos)}
                   </td>
                   <td className="py-3 pr-4 text-zinc-700">
-                    {new Date(a.createdAt).toLocaleDateString("pt-BR")}
+                    {new Date(p.createdAt).toLocaleDateString("pt-BR")}
                   </td>
                   <td className="py-3 pr-0 text-right">
                     <div className="flex justify-end gap-2">
                       <Link
-                        href={`/administradoras/${a.id}`}
+                        href={`/planos/${p.id}`}
                         className="inline-flex h-9 items-center justify-center rounded-xl border border-zinc-200 bg-white px-3 text-xs font-medium text-zinc-700 hover:bg-zinc-50"
                       >
                         Editar
                       </Link>
                       <button
                         type="button"
-                        onClick={() => void onDelete(a.id)}
+                        onClick={() => void onDelete(p.id)}
                         className="inline-flex h-9 items-center justify-center rounded-xl border border-red-200 bg-white px-3 text-xs font-medium text-red-700 hover:bg-red-50"
                       >
                         Excluir
@@ -176,4 +203,3 @@ export default function AdministradorasClient() {
     </div>
   );
 }
-

@@ -9,5 +9,6 @@
  * 🟢 You can import this file directly.
  */
 export type * from './models/Administradora'
+export type * from './models/Plano'
 export type * from './models/Venda'
 export type * from './commonInputTypes'

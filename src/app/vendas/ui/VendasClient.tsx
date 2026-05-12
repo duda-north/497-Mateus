@@ -13,6 +13,7 @@ type Venda = {
   id: string;
   administradoraId: string;
   administradora: AdministradoraMini;
+  plano: { id: string; nome: string; tipoBem: string } | null;
   status: "RASCUNHO" | "ENVIADA" | "FECHADA" | "CANCELADA";
   titulo: string;
   descricao: string | null;
@@ -36,6 +37,9 @@ async function api<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
   if (res.status === 204) return undefined as T;
   return (await res.json()) as T;
 }
+
+const controlClass =
+  "h-10 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 outline-none focus-visible:border-zinc-400 focus-visible:ring-2 focus-visible:ring-zinc-300/60";
 
 function formatMoneyPtBrFromCentavos(v: number | null) {
   if (v === null) return "—";
@@ -111,7 +115,7 @@ export default function VendasClient() {
       if (status && v.status !== status) return false;
       if (administradoraId && v.administradoraId !== administradoraId) return false;
       if (!q) return true;
-      const hay = `${v.titulo} ${v.administradora?.nome ?? ""}`.toLowerCase();
+      const hay = `${v.titulo} ${v.administradora?.nome ?? ""} ${v.plano?.nome ?? ""}`.toLowerCase();
       return hay.includes(q);
     });
   }, [items, query, status, administradoraId]);
@@ -136,13 +140,13 @@ export default function VendasClient() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Buscar por título ou administradora..."
-            className="h-10 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm outline-none focus:border-zinc-400 lg:w-72"
+            className={`${controlClass} lg:w-72`}
           />
 
           <select
             value={administradoraId}
             onChange={(e) => setAdministradoraId(e.target.value)}
-            className="h-10 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm outline-none focus:border-zinc-400 lg:w-64"
+            className={`${controlClass} lg:w-64`}
           >
             <option value="">Todas administradoras</option>
             {administradoras.map((a) => (
@@ -155,7 +159,7 @@ export default function VendasClient() {
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value as typeof status)}
-            className="h-10 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm outline-none focus:border-zinc-400 lg:w-44"
+            className={`${controlClass} lg:w-44`}
           >
             <option value="">Todos status</option>
             <option value="RASCUNHO">Rascunho</option>
@@ -176,18 +180,23 @@ export default function VendasClient() {
       {error ? (
         <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
           {error}{" "}
-          <button className="underline" onClick={() => void reload()}>
+          <button
+            type="button"
+            className="underline"
+            onClick={() => void reload()}
+          >
             Tentar novamente
           </button>
         </div>
       ) : null}
 
       <div className="mt-4 overflow-x-auto">
-        <table className="w-full min-w-[1100px] text-left text-sm">
+        <table className="w-full min-w-[1280px] text-left text-sm">
           <thead className="text-xs text-zinc-500">
             <tr className="border-b border-zinc-200">
               <th className="py-3 pr-4 font-medium">Título</th>
               <th className="py-3 pr-4 font-medium">Administradora</th>
+              <th className="py-3 pr-4 font-medium">Plano</th>
               <th className="py-3 pr-4 font-medium">Status</th>
               <th className="py-3 pr-4 font-medium">Valor</th>
               <th className="py-3 pr-4 font-medium">Data da venda</th>
@@ -198,14 +207,16 @@ export default function VendasClient() {
           <tbody>
             {loading ? (
               <tr>
-                <td className="py-6 text-zinc-600" colSpan={7}>
+                <td className="py-6 text-zinc-600" colSpan={8}>
                   Carregando...
                 </td>
               </tr>
             ) : filtered.length === 0 ? (
               <tr>
-                <td className="py-6 text-zinc-600" colSpan={7}>
-                  Nenhuma venda cadastrada.
+                <td className="py-6 text-zinc-600" colSpan={8}>
+                  {items.length === 0
+                    ? "Nenhuma venda cadastrada."
+                    : "Nenhum resultado para os filtros atuais."}
                 </td>
               </tr>
             ) : (
@@ -218,6 +229,14 @@ export default function VendasClient() {
                       <div className="text-xs text-zinc-500">
                         {v.administradora?.cnpj ?? ""}
                       </div>
+                    </div>
+                  </td>
+                  <td className="py-3 pr-4 text-zinc-700">
+                    <div className="leading-5">
+                      <div className="text-zinc-800">{v.plano?.nome ?? "—"}</div>
+                      {v.plano?.tipoBem ? (
+                        <div className="text-xs text-zinc-500">{v.plano.tipoBem}</div>
+                      ) : null}
                     </div>
                   </td>
                   <td className="py-3 pr-4">
@@ -241,6 +260,7 @@ export default function VendasClient() {
                         Editar
                       </Link>
                       <button
+                        type="button"
                         onClick={() => void onDelete(v.id)}
                         className="inline-flex h-9 items-center justify-center rounded-xl border border-red-200 bg-white px-3 text-xs font-medium text-red-700 hover:bg-red-50"
                       >

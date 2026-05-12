@@ -47,6 +47,11 @@ export { Prisma }
  */
 export type Administradora = Prisma.AdministradoraModel
 /**
+ * Model Plano
+ * 
+ */
+export type Plano = Prisma.PlanoModel
+/**
  * Model Venda
  * 
  */

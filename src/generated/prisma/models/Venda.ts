@@ -37,6 +37,7 @@ export type VendaSumAggregateOutputType = {
 export type VendaMinAggregateOutputType = {
   id: string | null
   administradoraId: string | null
+  planoId: string | null
   status: $Enums.VendaStatus | null
   titulo: string | null
   descricao: string | null
@@ -50,6 +51,7 @@ export type VendaMinAggregateOutputType = {
 export type VendaMaxAggregateOutputType = {
   id: string | null
   administradoraId: string | null
+  planoId: string | null
   status: $Enums.VendaStatus | null
   titulo: string | null
   descricao: string | null
@@ -63,6 +65,7 @@ export type VendaMaxAggregateOutputType = {
 export type VendaCountAggregateOutputType = {
   id: number
   administradoraId: number
+  planoId: number
   status: number
   titulo: number
   descricao: number
@@ -86,6 +89,7 @@ export type VendaSumAggregateInputType = {
 export type VendaMinAggregateInputType = {
   id?: true
   administradoraId?: true
+  planoId?: true
   status?: true
   titulo?: true
   descricao?: true
@@ -99,6 +103,7 @@ export type VendaMinAggregateInputType = {
 export type VendaMaxAggregateInputType = {
   id?: true
   administradoraId?: true
+  planoId?: true
   status?: true
   titulo?: true
   descricao?: true
@@ -112,6 +117,7 @@ export type VendaMaxAggregateInputType = {
 export type VendaCountAggregateInputType = {
   id?: true
   administradoraId?: true
+  planoId?: true
   status?: true
   titulo?: true
   descricao?: true
@@ -212,6 +218,7 @@ export type VendaGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
 export type VendaGroupByOutputType = {
   id: string
   administradoraId: string
+  planoId: string | null
   status: $Enums.VendaStatus
   titulo: string
   descricao: string | null
@@ -248,6 +255,7 @@ export type VendaWhereInput = {
   NOT?: Prisma.VendaWhereInput | Prisma.VendaWhereInput[]
   id?: Prisma.StringFilter<"Venda"> | string
   administradoraId?: Prisma.StringFilter<"Venda"> | string
+  planoId?: Prisma.StringNullableFilter<"Venda"> | string | null
   status?: Prisma.EnumVendaStatusFilter<"Venda"> | $Enums.VendaStatus
   titulo?: Prisma.StringFilter<"Venda"> | string
   descricao?: Prisma.StringNullableFilter<"Venda"> | string | null
@@ -257,11 +265,13 @@ export type VendaWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"Venda"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Venda"> | Date | string
   administradora?: Prisma.XOR<Prisma.AdministradoraScalarRelationFilter, Prisma.AdministradoraWhereInput>
+  plano?: Prisma.XOR<Prisma.PlanoNullableScalarRelationFilter, Prisma.PlanoWhereInput> | null
 }
 
 export type VendaOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   administradoraId?: Prisma.SortOrder
+  planoId?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   titulo?: Prisma.SortOrder
   descricao?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -271,6 +281,7 @@ export type VendaOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   administradora?: Prisma.AdministradoraOrderByWithRelationInput
+  plano?: Prisma.PlanoOrderByWithRelationInput
 }
 
 export type VendaWhereUniqueInput = Prisma.AtLeast<{
@@ -279,6 +290,7 @@ export type VendaWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.VendaWhereInput[]
   NOT?: Prisma.VendaWhereInput | Prisma.VendaWhereInput[]
   administradoraId?: Prisma.StringFilter<"Venda"> | string
+  planoId?: Prisma.StringNullableFilter<"Venda"> | string | null
   status?: Prisma.EnumVendaStatusFilter<"Venda"> | $Enums.VendaStatus
   titulo?: Prisma.StringFilter<"Venda"> | string
   descricao?: Prisma.StringNullableFilter<"Venda"> | string | null
@@ -288,11 +300,13 @@ export type VendaWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"Venda"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Venda"> | Date | string
   administradora?: Prisma.XOR<Prisma.AdministradoraScalarRelationFilter, Prisma.AdministradoraWhereInput>
+  plano?: Prisma.XOR<Prisma.PlanoNullableScalarRelationFilter, Prisma.PlanoWhereInput> | null
 }, "id">
 
 export type VendaOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   administradoraId?: Prisma.SortOrder
+  planoId?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   titulo?: Prisma.SortOrder
   descricao?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -314,6 +328,7 @@ export type VendaScalarWhereWithAggregatesInput = {
   NOT?: Prisma.VendaScalarWhereWithAggregatesInput | Prisma.VendaScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Venda"> | string
   administradoraId?: Prisma.StringWithAggregatesFilter<"Venda"> | string
+  planoId?: Prisma.StringNullableWithAggregatesFilter<"Venda"> | string | null
   status?: Prisma.EnumVendaStatusWithAggregatesFilter<"Venda"> | $Enums.VendaStatus
   titulo?: Prisma.StringWithAggregatesFilter<"Venda"> | string
   descricao?: Prisma.StringNullableWithAggregatesFilter<"Venda"> | string | null
@@ -335,11 +350,13 @@ export type VendaCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   administradora: Prisma.AdministradoraCreateNestedOneWithoutVendasInput
+  plano?: Prisma.PlanoCreateNestedOneWithoutVendasInput
 }
 
 export type VendaUncheckedCreateInput = {
   id?: string
   administradoraId: string
+  planoId?: string | null
   status?: $Enums.VendaStatus
   titulo: string
   descricao?: string | null
@@ -361,11 +378,13 @@ export type VendaUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   administradora?: Prisma.AdministradoraUpdateOneRequiredWithoutVendasNestedInput
+  plano?: Prisma.PlanoUpdateOneWithoutVendasNestedInput
 }
 
 export type VendaUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   administradoraId?: Prisma.StringFieldUpdateOperationsInput | string
+  planoId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVendaStatusFieldUpdateOperationsInput | $Enums.VendaStatus
   titulo?: Prisma.StringFieldUpdateOperationsInput | string
   descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -379,6 +398,7 @@ export type VendaUncheckedUpdateInput = {
 export type VendaCreateManyInput = {
   id?: string
   administradoraId: string
+  planoId?: string | null
   status?: $Enums.VendaStatus
   titulo: string
   descricao?: string | null
@@ -404,6 +424,7 @@ export type VendaUpdateManyMutationInput = {
 export type VendaUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   administradoraId?: Prisma.StringFieldUpdateOperationsInput | string
+  planoId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVendaStatusFieldUpdateOperationsInput | $Enums.VendaStatus
   titulo?: Prisma.StringFieldUpdateOperationsInput | string
   descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -427,6 +448,7 @@ export type VendaOrderByRelationAggregateInput = {
 export type VendaCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   administradoraId?: Prisma.SortOrder
+  planoId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   titulo?: Prisma.SortOrder
   descricao?: Prisma.SortOrder
@@ -444,6 +466,7 @@ export type VendaAvgOrderByAggregateInput = {
 export type VendaMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   administradoraId?: Prisma.SortOrder
+  planoId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   titulo?: Prisma.SortOrder
   descricao?: Prisma.SortOrder
@@ -457,6 +480,7 @@ export type VendaMaxOrderByAggregateInput = {
 export type VendaMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   administradoraId?: Prisma.SortOrder
+  planoId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   titulo?: Prisma.SortOrder
   descricao?: Prisma.SortOrder
@@ -513,16 +537,50 @@ export type VendaUncheckedUpdateManyWithoutAdministradoraNestedInput = {
   deleteMany?: Prisma.VendaScalarWhereInput | Prisma.VendaScalarWhereInput[]
 }
 
-export type EnumVendaStatusFieldUpdateOperationsInput = {
-  set?: $Enums.VendaStatus
+export type VendaCreateNestedManyWithoutPlanoInput = {
+  create?: Prisma.XOR<Prisma.VendaCreateWithoutPlanoInput, Prisma.VendaUncheckedCreateWithoutPlanoInput> | Prisma.VendaCreateWithoutPlanoInput[] | Prisma.VendaUncheckedCreateWithoutPlanoInput[]
+  connectOrCreate?: Prisma.VendaCreateOrConnectWithoutPlanoInput | Prisma.VendaCreateOrConnectWithoutPlanoInput[]
+  createMany?: Prisma.VendaCreateManyPlanoInputEnvelope
+  connect?: Prisma.VendaWhereUniqueInput | Prisma.VendaWhereUniqueInput[]
 }
 
-export type NullableIntFieldUpdateOperationsInput = {
-  set?: number | null
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
+export type VendaUncheckedCreateNestedManyWithoutPlanoInput = {
+  create?: Prisma.XOR<Prisma.VendaCreateWithoutPlanoInput, Prisma.VendaUncheckedCreateWithoutPlanoInput> | Prisma.VendaCreateWithoutPlanoInput[] | Prisma.VendaUncheckedCreateWithoutPlanoInput[]
+  connectOrCreate?: Prisma.VendaCreateOrConnectWithoutPlanoInput | Prisma.VendaCreateOrConnectWithoutPlanoInput[]
+  createMany?: Prisma.VendaCreateManyPlanoInputEnvelope
+  connect?: Prisma.VendaWhereUniqueInput | Prisma.VendaWhereUniqueInput[]
+}
+
+export type VendaUpdateManyWithoutPlanoNestedInput = {
+  create?: Prisma.XOR<Prisma.VendaCreateWithoutPlanoInput, Prisma.VendaUncheckedCreateWithoutPlanoInput> | Prisma.VendaCreateWithoutPlanoInput[] | Prisma.VendaUncheckedCreateWithoutPlanoInput[]
+  connectOrCreate?: Prisma.VendaCreateOrConnectWithoutPlanoInput | Prisma.VendaCreateOrConnectWithoutPlanoInput[]
+  upsert?: Prisma.VendaUpsertWithWhereUniqueWithoutPlanoInput | Prisma.VendaUpsertWithWhereUniqueWithoutPlanoInput[]
+  createMany?: Prisma.VendaCreateManyPlanoInputEnvelope
+  set?: Prisma.VendaWhereUniqueInput | Prisma.VendaWhereUniqueInput[]
+  disconnect?: Prisma.VendaWhereUniqueInput | Prisma.VendaWhereUniqueInput[]
+  delete?: Prisma.VendaWhereUniqueInput | Prisma.VendaWhereUniqueInput[]
+  connect?: Prisma.VendaWhereUniqueInput | Prisma.VendaWhereUniqueInput[]
+  update?: Prisma.VendaUpdateWithWhereUniqueWithoutPlanoInput | Prisma.VendaUpdateWithWhereUniqueWithoutPlanoInput[]
+  updateMany?: Prisma.VendaUpdateManyWithWhereWithoutPlanoInput | Prisma.VendaUpdateManyWithWhereWithoutPlanoInput[]
+  deleteMany?: Prisma.VendaScalarWhereInput | Prisma.VendaScalarWhereInput[]
+}
+
+export type VendaUncheckedUpdateManyWithoutPlanoNestedInput = {
+  create?: Prisma.XOR<Prisma.VendaCreateWithoutPlanoInput, Prisma.VendaUncheckedCreateWithoutPlanoInput> | Prisma.VendaCreateWithoutPlanoInput[] | Prisma.VendaUncheckedCreateWithoutPlanoInput[]
+  connectOrCreate?: Prisma.VendaCreateOrConnectWithoutPlanoInput | Prisma.VendaCreateOrConnectWithoutPlanoInput[]
+  upsert?: Prisma.VendaUpsertWithWhereUniqueWithoutPlanoInput | Prisma.VendaUpsertWithWhereUniqueWithoutPlanoInput[]
+  createMany?: Prisma.VendaCreateManyPlanoInputEnvelope
+  set?: Prisma.VendaWhereUniqueInput | Prisma.VendaWhereUniqueInput[]
+  disconnect?: Prisma.VendaWhereUniqueInput | Prisma.VendaWhereUniqueInput[]
+  delete?: Prisma.VendaWhereUniqueInput | Prisma.VendaWhereUniqueInput[]
+  connect?: Prisma.VendaWhereUniqueInput | Prisma.VendaWhereUniqueInput[]
+  update?: Prisma.VendaUpdateWithWhereUniqueWithoutPlanoInput | Prisma.VendaUpdateWithWhereUniqueWithoutPlanoInput[]
+  updateMany?: Prisma.VendaUpdateManyWithWhereWithoutPlanoInput | Prisma.VendaUpdateManyWithWhereWithoutPlanoInput[]
+  deleteMany?: Prisma.VendaScalarWhereInput | Prisma.VendaScalarWhereInput[]
+}
+
+export type EnumVendaStatusFieldUpdateOperationsInput = {
+  set?: $Enums.VendaStatus
 }
 
 export type NullableDateTimeFieldUpdateOperationsInput = {
@@ -539,10 +597,12 @@ export type VendaCreateWithoutAdministradoraInput = {
   observacoes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  plano?: Prisma.PlanoCreateNestedOneWithoutVendasInput
 }
 
 export type VendaUncheckedCreateWithoutAdministradoraInput = {
   id?: string
+  planoId?: string | null
   status?: $Enums.VendaStatus
   titulo: string
   descricao?: string | null
@@ -584,6 +644,7 @@ export type VendaScalarWhereInput = {
   NOT?: Prisma.VendaScalarWhereInput | Prisma.VendaScalarWhereInput[]
   id?: Prisma.StringFilter<"Venda"> | string
   administradoraId?: Prisma.StringFilter<"Venda"> | string
+  planoId?: Prisma.StringNullableFilter<"Venda"> | string | null
   status?: Prisma.EnumVendaStatusFilter<"Venda"> | $Enums.VendaStatus
   titulo?: Prisma.StringFilter<"Venda"> | string
   descricao?: Prisma.StringNullableFilter<"Venda"> | string | null
@@ -594,8 +655,60 @@ export type VendaScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Venda"> | Date | string
 }
 
+export type VendaCreateWithoutPlanoInput = {
+  id?: string
+  status?: $Enums.VendaStatus
+  titulo: string
+  descricao?: string | null
+  valorCentavos?: number | null
+  dataVenda?: Date | string | null
+  observacoes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  administradora: Prisma.AdministradoraCreateNestedOneWithoutVendasInput
+}
+
+export type VendaUncheckedCreateWithoutPlanoInput = {
+  id?: string
+  administradoraId: string
+  status?: $Enums.VendaStatus
+  titulo: string
+  descricao?: string | null
+  valorCentavos?: number | null
+  dataVenda?: Date | string | null
+  observacoes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type VendaCreateOrConnectWithoutPlanoInput = {
+  where: Prisma.VendaWhereUniqueInput
+  create: Prisma.XOR<Prisma.VendaCreateWithoutPlanoInput, Prisma.VendaUncheckedCreateWithoutPlanoInput>
+}
+
+export type VendaCreateManyPlanoInputEnvelope = {
+  data: Prisma.VendaCreateManyPlanoInput | Prisma.VendaCreateManyPlanoInput[]
+}
+
+export type VendaUpsertWithWhereUniqueWithoutPlanoInput = {
+  where: Prisma.VendaWhereUniqueInput
+  update: Prisma.XOR<Prisma.VendaUpdateWithoutPlanoInput, Prisma.VendaUncheckedUpdateWithoutPlanoInput>
+  create: Prisma.XOR<Prisma.VendaCreateWithoutPlanoInput, Prisma.VendaUncheckedCreateWithoutPlanoInput>
+}
+
+export type VendaUpdateWithWhereUniqueWithoutPlanoInput = {
+  where: Prisma.VendaWhereUniqueInput
+  data: Prisma.XOR<Prisma.VendaUpdateWithoutPlanoInput, Prisma.VendaUncheckedUpdateWithoutPlanoInput>
+}
+
+export type VendaUpdateManyWithWhereWithoutPlanoInput = {
+  where: Prisma.VendaScalarWhereInput
+  data: Prisma.XOR<Prisma.VendaUpdateManyMutationInput, Prisma.VendaUncheckedUpdateManyWithoutPlanoInput>
+}
+
 export type VendaCreateManyAdministradoraInput = {
   id?: string
+  planoId?: string | null
   status?: $Enums.VendaStatus
   titulo: string
   descricao?: string | null
@@ -616,10 +729,12 @@ export type VendaUpdateWithoutAdministradoraInput = {
   observacoes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  plano?: Prisma.PlanoUpdateOneWithoutVendasNestedInput
 }
 
 export type VendaUncheckedUpdateWithoutAdministradoraInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  planoId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVendaStatusFieldUpdateOperationsInput | $Enums.VendaStatus
   titulo?: Prisma.StringFieldUpdateOperationsInput | string
   descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -632,6 +747,59 @@ export type VendaUncheckedUpdateWithoutAdministradoraInput = {
 
 export type VendaUncheckedUpdateManyWithoutAdministradoraInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  planoId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumVendaStatusFieldUpdateOperationsInput | $Enums.VendaStatus
+  titulo?: Prisma.StringFieldUpdateOperationsInput | string
+  descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  valorCentavos?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  dataVenda?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  observacoes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type VendaCreateManyPlanoInput = {
+  id?: string
+  administradoraId: string
+  status?: $Enums.VendaStatus
+  titulo: string
+  descricao?: string | null
+  valorCentavos?: number | null
+  dataVenda?: Date | string | null
+  observacoes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type VendaUpdateWithoutPlanoInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumVendaStatusFieldUpdateOperationsInput | $Enums.VendaStatus
+  titulo?: Prisma.StringFieldUpdateOperationsInput | string
+  descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  valorCentavos?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  dataVenda?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  observacoes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  administradora?: Prisma.AdministradoraUpdateOneRequiredWithoutVendasNestedInput
+}
+
+export type VendaUncheckedUpdateWithoutPlanoInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  administradoraId?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumVendaStatusFieldUpdateOperationsInput | $Enums.VendaStatus
+  titulo?: Prisma.StringFieldUpdateOperationsInput | string
+  descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  valorCentavos?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  dataVenda?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  observacoes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type VendaUncheckedUpdateManyWithoutPlanoInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  administradoraId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumVendaStatusFieldUpdateOperationsInput | $Enums.VendaStatus
   titulo?: Prisma.StringFieldUpdateOperationsInput | string
   descricao?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -647,6 +815,7 @@ export type VendaUncheckedUpdateManyWithoutAdministradoraInput = {
 export type VendaSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   administradoraId?: boolean
+  planoId?: boolean
   status?: boolean
   titulo?: boolean
   descricao?: boolean
@@ -656,11 +825,13 @@ export type VendaSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   createdAt?: boolean
   updatedAt?: boolean
   administradora?: boolean | Prisma.AdministradoraDefaultArgs<ExtArgs>
+  plano?: boolean | Prisma.Venda$planoArgs<ExtArgs>
 }, ExtArgs["result"]["venda"]>
 
 export type VendaSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   administradoraId?: boolean
+  planoId?: boolean
   status?: boolean
   titulo?: boolean
   descricao?: boolean
@@ -670,11 +841,13 @@ export type VendaSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   createdAt?: boolean
   updatedAt?: boolean
   administradora?: boolean | Prisma.AdministradoraDefaultArgs<ExtArgs>
+  plano?: boolean | Prisma.Venda$planoArgs<ExtArgs>
 }, ExtArgs["result"]["venda"]>
 
 export type VendaSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   administradoraId?: boolean
+  planoId?: boolean
   status?: boolean
   titulo?: boolean
   descricao?: boolean
@@ -684,11 +857,13 @@ export type VendaSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   createdAt?: boolean
   updatedAt?: boolean
   administradora?: boolean | Prisma.AdministradoraDefaultArgs<ExtArgs>
+  plano?: boolean | Prisma.Venda$planoArgs<ExtArgs>
 }, ExtArgs["result"]["venda"]>
 
 export type VendaSelectScalar = {
   id?: boolean
   administradoraId?: boolean
+  planoId?: boolean
   status?: boolean
   titulo?: boolean
   descricao?: boolean
@@ -699,25 +874,30 @@ export type VendaSelectScalar = {
   updatedAt?: boolean
 }
 
-export type VendaOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "administradoraId" | "status" | "titulo" | "descricao" | "valorCentavos" | "dataVenda" | "observacoes" | "createdAt" | "updatedAt", ExtArgs["result"]["venda"]>
+export type VendaOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "administradoraId" | "planoId" | "status" | "titulo" | "descricao" | "valorCentavos" | "dataVenda" | "observacoes" | "createdAt" | "updatedAt", ExtArgs["result"]["venda"]>
 export type VendaInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   administradora?: boolean | Prisma.AdministradoraDefaultArgs<ExtArgs>
+  plano?: boolean | Prisma.Venda$planoArgs<ExtArgs>
 }
 export type VendaIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   administradora?: boolean | Prisma.AdministradoraDefaultArgs<ExtArgs>
+  plano?: boolean | Prisma.Venda$planoArgs<ExtArgs>
 }
 export type VendaIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   administradora?: boolean | Prisma.AdministradoraDefaultArgs<ExtArgs>
+  plano?: boolean | Prisma.Venda$planoArgs<ExtArgs>
 }
 
 export type $VendaPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Venda"
   objects: {
     administradora: Prisma.$AdministradoraPayload<ExtArgs>
+    plano: Prisma.$PlanoPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     administradoraId: string
+    planoId: string | null
     status: $Enums.VendaStatus
     titulo: string
     descricao: string | null
@@ -1121,6 +1301,7 @@ readonly fields: VendaFieldRefs;
 export interface Prisma__VendaClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   administradora<T extends Prisma.AdministradoraDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AdministradoraDefaultArgs<ExtArgs>>): Prisma.Prisma__AdministradoraClient<runtime.Types.Result.GetResult<Prisma.$AdministradoraPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  plano<T extends Prisma.Venda$planoArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Venda$planoArgs<ExtArgs>>): Prisma.Prisma__PlanoClient<runtime.Types.Result.GetResult<Prisma.$PlanoPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1152,6 +1333,7 @@ export interface Prisma__VendaClient<T, Null = never, ExtArgs extends runtime.Ty
 export interface VendaFieldRefs {
   readonly id: Prisma.FieldRef<"Venda", 'String'>
   readonly administradoraId: Prisma.FieldRef<"Venda", 'String'>
+  readonly planoId: Prisma.FieldRef<"Venda", 'String'>
   readonly status: Prisma.FieldRef<"Venda", 'VendaStatus'>
   readonly titulo: Prisma.FieldRef<"Venda", 'String'>
   readonly descricao: Prisma.FieldRef<"Venda", 'String'>
@@ -1556,6 +1738,25 @@ export type VendaDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Interna
    * Limit how many Vendas to delete.
    */
   limit?: number
+}
+
+/**
+ * Venda.plano
+ */
+export type Venda$planoArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Plano
+   */
+  select?: Prisma.PlanoSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Plano
+   */
+  omit?: Prisma.PlanoOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PlanoInclude<ExtArgs> | null
+  where?: Prisma.PlanoWhereInput
 }
 
 /**

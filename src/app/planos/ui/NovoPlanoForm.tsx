@@ -4,28 +4,25 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 type Administradora = { id: string; nome: string; cnpj: string };
-type PlanoMini = { id: string; nome: string; tipoBem: string };
 
 type FormState = {
   administradoraId: string;
-  planoId: string;
-  titulo: string;
-  status: "RASCUNHO" | "ENVIADA" | "FECHADA" | "CANCELADA";
-  valor: string; // entrada em R$, ex: 1234,56
-  dataVenda: string; // yyyy-mm-dd
-  descricao: string;
-  observacoes: string;
+  nome: string;
+  tipoBem: string;
+  valorCredito: string;
+  regrasComissaoJson: string;
+  regrasRecebimentoJson: string;
+  regrasEstornoJson: string;
 };
 
 const initialState: FormState = {
   administradoraId: "",
-  planoId: "",
-  titulo: "",
-  status: "RASCUNHO",
-  valor: "",
-  dataVenda: "",
-  descricao: "",
-  observacoes: "",
+  nome: "",
+  tipoBem: "",
+  valorCredito: "",
+  regrasComissaoJson: "",
+  regrasRecebimentoJson: "",
+  regrasEstornoJson: "",
 };
 
 async function api<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
@@ -38,14 +35,12 @@ async function api<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
   return (await res.json()) as T;
 }
 
-function parseValorToCentavos(input: string): number | null | undefined {
+function parseValorToCentavos(input: string): number | null {
   const t = input.trim();
   if (!t) return null;
-
-  // Aceita formatos comuns: "1234,56", "1.234,56", "1234.56"
   const normalized = t.replace(/\s/g, "").replace(/\./g, "").replace(",", ".");
   const n = Number(normalized);
-  if (!Number.isFinite(n) || n < 0) return undefined;
+  if (!Number.isFinite(n) || n < 0) return NaN;
   return Math.round(n * 100);
 }
 
@@ -55,14 +50,12 @@ function Field({
   onChange,
   placeholder,
   required,
-  type,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
   required?: boolean;
-  type?: string;
 }) {
   return (
     <label className="block">
@@ -71,7 +64,6 @@ function Field({
         {required ? <span className="text-red-600"> *</span> : null}
       </div>
       <input
-        type={type ?? "text"}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
@@ -81,11 +73,10 @@ function Field({
   );
 }
 
-export default function NovaVendaForm() {
+export default function NovoPlanoForm() {
   const router = useRouter();
   const [form, setForm] = useState<FormState>(initialState);
   const [administradoras, setAdministradoras] = useState<Administradora[]>([]);
-  const [planos, setPlanos] = useState<PlanoMini[]>([]);
   const [loadingAdms, setLoadingAdms] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -103,82 +94,49 @@ export default function NovaVendaForm() {
       })
       .catch((e) => setError(e instanceof Error ? e.message : "Erro ao carregar."))
       .finally(() => setLoadingAdms(false));
-
     return () => {
       alive = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    if (!form.administradoraId) {
-      setPlanos([]);
-      return;
-    }
-    let alive = true;
-    void api<PlanoMini[]>(
-      `/api/planos?administradoraId=${encodeURIComponent(form.administradoraId)}`,
-    )
-      .then((data) => {
-        if (!alive) return;
-        setPlanos(data);
-        setForm((p) => {
-          if (!p.planoId) return p;
-          const still = data.some((x) => x.id === p.planoId);
-          return still ? p : { ...p, planoId: "" };
-        });
-      })
-      .catch(() => {
-        if (!alive) return;
-        setPlanos([]);
-      });
-    return () => {
-      alive = false;
-    };
-  }, [form.administradoraId]);
-
   const payload = useMemo(() => {
     const trimOrNull = (s: string) => {
       const t = s.trim();
       return t ? t : null;
     };
-
-    const valorParsed = parseValorToCentavos(form.valor);
-    const valorCentavos =
-      typeof valorParsed === "number" ? valorParsed : null;
-
+    const valorCreditoCentavos = parseValorToCentavos(form.valorCredito);
     return {
       administradoraId: form.administradoraId.trim(),
-      planoId: form.planoId.trim() ? form.planoId.trim() : null,
-      titulo: form.titulo.trim(),
-      status: form.status,
-      valorCentavos,
-      dataVenda: form.dataVenda ? `${form.dataVenda}T00:00:00.000Z` : null,
-      descricao: trimOrNull(form.descricao),
-      observacoes: trimOrNull(form.observacoes),
+      nome: form.nome.trim(),
+      tipoBem: form.tipoBem.trim(),
+      valorCreditoCentavos: valorCreditoCentavos === null ? null : valorCreditoCentavos,
+      regrasComissaoJson: trimOrNull(form.regrasComissaoJson),
+      regrasRecebimentoJson: trimOrNull(form.regrasRecebimentoJson),
+      regrasEstornoJson: trimOrNull(form.regrasEstornoJson),
     };
   }, [form]);
 
   const valorError =
-    parseValorToCentavos(form.valor) === undefined ? "Valor inválido." : null;
+    payload.valorCreditoCentavos !== null && Number.isNaN(payload.valorCreditoCentavos)
+      ? "Valor do crédito inválido."
+      : null;
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-
     if (valorError) {
       setError(valorError);
       return;
     }
-
     setSaving(true);
     try {
-      await api("/api/vendas", {
+      await api("/api/planos", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(payload),
       });
-      router.push("/vendas");
+      router.push("/planos");
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro ao salvar.");
@@ -192,8 +150,7 @@ export default function NovaVendaForm() {
       onSubmit={(e) => void onSubmit(e)}
       className="rounded-2xl border border-zinc-200 bg-white p-5"
     >
-      <div className="text-sm font-medium">Dados da venda</div>
-
+      <div className="text-sm font-medium">Dados do plano</div>
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <label className="block md:col-span-2">
           <div className="mb-1 text-xs font-medium text-zinc-600">
@@ -201,13 +158,7 @@ export default function NovaVendaForm() {
           </div>
           <select
             value={form.administradoraId}
-            onChange={(e) =>
-              setForm((p) => ({
-                ...p,
-                administradoraId: e.target.value,
-                planoId: "",
-              }))
-            }
+            onChange={(e) => setForm((p) => ({ ...p, administradoraId: e.target.value }))}
             className="h-10 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 outline-none focus-visible:border-zinc-400 focus-visible:ring-2 focus-visible:ring-zinc-300/60"
             disabled={loadingAdms}
           >
@@ -219,85 +170,64 @@ export default function NovaVendaForm() {
           </select>
           {administradoras.length === 0 && !loadingAdms ? (
             <div className="mt-2 text-xs text-zinc-500">
-              Você precisa cadastrar uma administradora antes.
-            </div>
-          ) : null}
-        </label>
-
-        <label className="block md:col-span-2">
-          <div className="mb-1 text-xs font-medium text-zinc-600">Plano (opcional)</div>
-          <select
-            value={form.planoId}
-            onChange={(e) => setForm((p) => ({ ...p, planoId: e.target.value }))}
-            className="h-10 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 outline-none focus-visible:border-zinc-400 focus-visible:ring-2 focus-visible:ring-zinc-300/60"
-            disabled={!form.administradoraId || planos.length === 0}
-          >
-            <option value="">Nenhum</option>
-            {planos.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.nome} — {p.tipoBem}
-              </option>
-            ))}
-          </select>
-          {form.administradoraId && planos.length === 0 ? (
-            <div className="mt-2 text-xs text-zinc-500">
-              Nenhum plano para esta administradora. Cadastre em Planos.
+              Cadastre uma administradora antes de criar um plano.
             </div>
           ) : null}
         </label>
 
         <Field
-          label="Título"
+          label="Nome do plano"
           required
-          value={form.titulo}
-          onChange={(v) => setForm((p) => ({ ...p, titulo: v }))}
-          placeholder="Ex.: Venda consórcio Auto"
+          value={form.nome}
+          onChange={(v) => setForm((p) => ({ ...p, nome: v }))}
+          placeholder="Ex.: Consórcio Imóvel 120x"
         />
-
-        <label className="block">
-          <div className="mb-1 text-xs font-medium text-zinc-600">Status</div>
-          <select
-            value={form.status}
-            onChange={(e) => setForm((p) => ({ ...p, status: e.target.value as FormState["status"] }))}
-            className="h-10 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 outline-none focus-visible:border-zinc-400 focus-visible:ring-2 focus-visible:ring-zinc-300/60"
-          >
-            <option value="RASCUNHO">Rascunho</option>
-            <option value="ENVIADA">Enviada</option>
-            <option value="FECHADA">Fechada</option>
-            <option value="CANCELADA">Cancelada</option>
-          </select>
-        </label>
-
         <Field
-          label="Valor (R$)"
-          value={form.valor}
-          onChange={(v) => setForm((p) => ({ ...p, valor: v }))}
-          placeholder="Ex.: 1.234,56"
+          label="Tipo de bem"
+          required
+          value={form.tipoBem}
+          onChange={(v) => setForm((p) => ({ ...p, tipoBem: v }))}
+          placeholder="Ex.: Imóvel, Veículo, Serviço"
         />
-
         <Field
-          label="Data da venda"
-          type="date"
-          value={form.dataVenda}
-          onChange={(v) => setForm((p) => ({ ...p, dataVenda: v }))}
+          label="Valor do crédito (R$)"
+          value={form.valorCredito}
+          onChange={(v) => setForm((p) => ({ ...p, valorCredito: v }))}
+          placeholder="Ex.: 150.000,00"
         />
       </div>
 
-      <div className="mt-8 text-sm font-medium">Detalhes</div>
-      <div className="mt-3 grid gap-4 md:grid-cols-2">
-        <label className="block md:col-span-2">
-          <div className="mb-1 text-xs font-medium text-zinc-600">Descrição</div>
+      <div className="mt-8 text-sm font-medium">Regras (JSON)</div>
+      <p className="mt-2 text-xs text-zinc-500">
+        Por enquanto use JSON livre; depois viramos em campos e validações específicas.
+      </p>
+      <div className="mt-4 grid gap-4 md:grid-cols-1">
+        <label className="block">
+          <div className="mb-1 text-xs font-medium text-zinc-600">Comissão</div>
           <textarea
-            value={form.descricao}
-            onChange={(e) => setForm((p) => ({ ...p, descricao: e.target.value }))}
+            value={form.regrasComissaoJson}
+            onChange={(e) => setForm((p) => ({ ...p, regrasComissaoJson: e.target.value }))}
+            placeholder='Ex.: {"percentual": 0.02}'
             className="min-h-24 w-full rounded-xl border border-zinc-200 bg-white p-3 text-sm text-zinc-900 outline-none focus-visible:border-zinc-400 focus-visible:ring-2 focus-visible:ring-zinc-300/60"
           />
         </label>
-        <label className="block md:col-span-2">
-          <div className="mb-1 text-xs font-medium text-zinc-600">Observações</div>
+        <label className="block">
+          <div className="mb-1 text-xs font-medium text-zinc-600">Recebimento</div>
           <textarea
-            value={form.observacoes}
-            onChange={(e) => setForm((p) => ({ ...p, observacoes: e.target.value }))}
+            value={form.regrasRecebimentoJson}
+            onChange={(e) =>
+              setForm((p) => ({ ...p, regrasRecebimentoJson: e.target.value }))
+            }
+            placeholder='Ex.: {"parcelas": 12}'
+            className="min-h-24 w-full rounded-xl border border-zinc-200 bg-white p-3 text-sm text-zinc-900 outline-none focus-visible:border-zinc-400 focus-visible:ring-2 focus-visible:ring-zinc-300/60"
+          />
+        </label>
+        <label className="block">
+          <div className="mb-1 text-xs font-medium text-zinc-600">Estorno</div>
+          <textarea
+            value={form.regrasEstornoJson}
+            onChange={(e) => setForm((p) => ({ ...p, regrasEstornoJson: e.target.value }))}
+            placeholder='Ex.: {"prazoDias": 7}'
             className="min-h-24 w-full rounded-xl border border-zinc-200 bg-white p-3 text-sm text-zinc-900 outline-none focus-visible:border-zinc-400 focus-visible:ring-2 focus-visible:ring-zinc-300/60"
           />
         </label>
@@ -312,7 +242,7 @@ export default function NovaVendaForm() {
       <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-end">
         <button
           type="button"
-          onClick={() => router.push("/vendas")}
+          onClick={() => router.push("/planos")}
           className="inline-flex h-10 items-center justify-center rounded-xl border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
           disabled={saving}
         >
@@ -329,4 +259,3 @@ export default function NovaVendaForm() {
     </form>
   );
 }
-

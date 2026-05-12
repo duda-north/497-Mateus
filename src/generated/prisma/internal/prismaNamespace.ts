@@ -385,6 +385,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   Administradora: 'Administradora',
+  Plano: 'Plano',
   Venda: 'Venda'
 } as const
 
@@ -401,7 +402,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "administradora" | "venda"
+    modelProps: "administradora" | "plano" | "venda"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -476,6 +477,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.AdministradoraCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.AdministradoraCountAggregateOutputType> | number
+        }
+      }
+    }
+    Plano: {
+      payload: Prisma.$PlanoPayload<ExtArgs>
+      fields: Prisma.PlanoFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PlanoFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlanoPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PlanoFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlanoPayload>
+        }
+        findFirst: {
+          args: Prisma.PlanoFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlanoPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PlanoFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlanoPayload>
+        }
+        findMany: {
+          args: Prisma.PlanoFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlanoPayload>[]
+        }
+        create: {
+          args: Prisma.PlanoCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlanoPayload>
+        }
+        createMany: {
+          args: Prisma.PlanoCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PlanoCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlanoPayload>[]
+        }
+        delete: {
+          args: Prisma.PlanoDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlanoPayload>
+        }
+        update: {
+          args: Prisma.PlanoUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlanoPayload>
+        }
+        deleteMany: {
+          args: Prisma.PlanoDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PlanoUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PlanoUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlanoPayload>[]
+        }
+        upsert: {
+          args: Prisma.PlanoUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PlanoPayload>
+        }
+        aggregate: {
+          args: Prisma.PlanoAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePlano>
+        }
+        groupBy: {
+          args: Prisma.PlanoGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PlanoGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PlanoCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PlanoCountAggregateOutputType> | number
         }
       }
     }
@@ -611,9 +686,26 @@ export const AdministradoraScalarFieldEnum = {
 export type AdministradoraScalarFieldEnum = (typeof AdministradoraScalarFieldEnum)[keyof typeof AdministradoraScalarFieldEnum]
 
 
+export const PlanoScalarFieldEnum = {
+  id: 'id',
+  administradoraId: 'administradoraId',
+  nome: 'nome',
+  tipoBem: 'tipoBem',
+  valorCreditoCentavos: 'valorCreditoCentavos',
+  regrasComissaoJson: 'regrasComissaoJson',
+  regrasRecebimentoJson: 'regrasRecebimentoJson',
+  regrasEstornoJson: 'regrasEstornoJson',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PlanoScalarFieldEnum = (typeof PlanoScalarFieldEnum)[keyof typeof PlanoScalarFieldEnum]
+
+
 export const VendaScalarFieldEnum = {
   id: 'id',
   administradoraId: 'administradoraId',
+  planoId: 'planoId',
   status: 'status',
   titulo: 'titulo',
   descricao: 'descricao',
@@ -664,16 +756,16 @@ export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel
 
 
 /**
- * Reference to a field of type 'VendaStatus'
+ * Reference to a field of type 'Int'
  */
-export type EnumVendaStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'VendaStatus'>
+export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
     
 
 
 /**
- * Reference to a field of type 'Int'
+ * Reference to a field of type 'VendaStatus'
  */
-export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+export type EnumVendaStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'VendaStatus'>
     
 
 
@@ -794,6 +886,7 @@ export type PrismaClientOptions = ({
 }
 export type GlobalOmitConfig = {
   administradora?: Prisma.AdministradoraOmit
+  plano?: Prisma.PlanoOmit
   venda?: Prisma.VendaOmit
 }
 

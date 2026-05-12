@@ -71,7 +71,7 @@ function Field({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="h-10 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm outline-none focus:border-zinc-400"
+        className="h-10 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 outline-none focus-visible:border-zinc-400 focus-visible:ring-2 focus-visible:ring-zinc-300/60"
       />
     </label>
   );
@@ -219,7 +219,7 @@ export default function NovaAdministradoraForm() {
           setForm((p) => ({ ...p, regrasOperacionaisJson: e.target.value }))
         }
         placeholder='Ex.: {"comissaoPadrao": 0.02}'
-        className="mt-3 min-h-28 w-full rounded-xl border border-zinc-200 bg-white p-3 text-sm outline-none focus:border-zinc-400"
+        className="mt-3 min-h-28 w-full rounded-xl border border-zinc-200 bg-white p-3 text-sm text-zinc-900 outline-none focus-visible:border-zinc-400 focus-visible:ring-2 focus-visible:ring-zinc-300/60"
       />
 
       {error ? (
