@@ -1,10 +1,15 @@
-import { prisma } from "@/lib/prisma";
+import {
+  administradoraCnpjEmConflito,
+  deleteAdministradora,
+  getAdministradora,
+  updateAdministradora,
+} from "@/lib/firestore-repo";
 
 type Params = { params: Promise<{ id: string }> };
 
 export async function GET(_req: Request, { params }: Params) {
   const { id } = await params;
-  const administradora = await prisma.administradora.findUnique({ where: { id } });
+  const administradora = await getAdministradora(id);
   if (!administradora) {
     return Response.json({ error: "Administradora não encontrada." }, { status: 404 });
   }
@@ -36,41 +41,39 @@ export async function PUT(req: Request, { params }: Params) {
     return Response.json({ error: "CNPJ não pode ser vazio." }, { status: 400 });
   }
 
+  if (body.cnpj !== undefined && (await administradoraCnpjEmConflito(body.cnpj.trim(), id))) {
+    return Response.json({ error: "CNPJ já cadastrado." }, { status: 400 });
+  }
+
   try {
-    const updated = await prisma.administradora.update({
-      where: { id },
-      data: {
-        ...(body.nome !== undefined ? { nome: body.nome.trim() } : {}),
-        ...(body.cnpj !== undefined ? { cnpj: body.cnpj.trim() } : {}),
-        ...(body.telefone !== undefined ? { telefone: body.telefone } : {}),
-        ...(body.email !== undefined ? { email: body.email } : {}),
-        ...(body.contatoPrincipal !== undefined
-          ? { contatoPrincipal: body.contatoPrincipal }
-          : {}),
-        ...(body.enderecoLogradouro !== undefined
-          ? { enderecoLogradouro: body.enderecoLogradouro }
-          : {}),
-        ...(body.enderecoNumero !== undefined
-          ? { enderecoNumero: body.enderecoNumero }
-          : {}),
-        ...(body.enderecoComplemento !== undefined
-          ? { enderecoComplemento: body.enderecoComplemento }
-          : {}),
-        ...(body.enderecoBairro !== undefined
-          ? { enderecoBairro: body.enderecoBairro }
-          : {}),
-        ...(body.enderecoCidade !== undefined
-          ? { enderecoCidade: body.enderecoCidade }
-          : {}),
-        ...(body.enderecoUf !== undefined ? { enderecoUf: body.enderecoUf } : {}),
-        ...(body.enderecoCep !== undefined ? { enderecoCep: body.enderecoCep } : {}),
-        ...(body.regrasOperacionaisJson !== undefined
-          ? { regrasOperacionaisJson: body.regrasOperacionaisJson }
-          : {}),
-      },
+    const updated = await updateAdministradora(id, {
+      ...(body.nome !== undefined ? { nome: body.nome.trim() } : {}),
+      ...(body.cnpj !== undefined ? { cnpj: body.cnpj.trim() } : {}),
+      ...(body.telefone !== undefined ? { telefone: body.telefone } : {}),
+      ...(body.email !== undefined ? { email: body.email } : {}),
+      ...(body.contatoPrincipal !== undefined
+        ? { contatoPrincipal: body.contatoPrincipal }
+        : {}),
+      ...(body.enderecoLogradouro !== undefined
+        ? { enderecoLogradouro: body.enderecoLogradouro }
+        : {}),
+      ...(body.enderecoNumero !== undefined ? { enderecoNumero: body.enderecoNumero } : {}),
+      ...(body.enderecoComplemento !== undefined
+        ? { enderecoComplemento: body.enderecoComplemento }
+        : {}),
+      ...(body.enderecoBairro !== undefined ? { enderecoBairro: body.enderecoBairro } : {}),
+      ...(body.enderecoCidade !== undefined ? { enderecoCidade: body.enderecoCidade } : {}),
+      ...(body.enderecoUf !== undefined ? { enderecoUf: body.enderecoUf } : {}),
+      ...(body.enderecoCep !== undefined ? { enderecoCep: body.enderecoCep } : {}),
+      ...(body.regrasOperacionaisJson !== undefined
+        ? { regrasOperacionaisJson: body.regrasOperacionaisJson }
+        : {}),
     });
+    if (!updated) {
+      return Response.json({ error: "Administradora não encontrada." }, { status: 404 });
+    }
     return Response.json(updated);
-  } catch (e) {
+  } catch {
     return Response.json(
       { error: "Não foi possível atualizar a administradora." },
       { status: 400 },
@@ -80,14 +83,9 @@ export async function PUT(req: Request, { params }: Params) {
 
 export async function DELETE(_req: Request, { params }: Params) {
   const { id } = await params;
-  try {
-    await prisma.administradora.delete({ where: { id } });
-    return new Response(null, { status: 204 });
-  } catch (e) {
-    return Response.json(
-      { error: "Não foi possível excluir a administradora." },
-      { status: 400 },
-    );
+  const result = await deleteAdministradora(id);
+  if (!result.ok) {
+    return Response.json({ error: result.reason }, { status: 400 });
   }
+  return new Response(null, { status: 204 });
 }
-

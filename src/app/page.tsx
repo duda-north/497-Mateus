@@ -1,23 +1,19 @@
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+import { PageFlowHeader } from "@/components/page-flow/PageFlowHeader";
+import { getDashboardCounts } from "@/lib/firestore-repo";
+
+export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [nAdministradoras, nPlanos, nVendas, nVendasFechadas] = await Promise.all([
-    prisma.administradora.count(),
-    prisma.plano.count(),
-    prisma.venda.count(),
-    prisma.venda.count({ where: { status: "FECHADA" } }),
-  ]);
+  const { nAdministradoras, nPlanos, nVendas, nVendasFechadas } = await getDashboardCounts();
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-2xl border border-zinc-200 bg-white p-6">
-        <div className="text-sm font-medium text-zinc-500">Visão geral operacional</div>
-        <div className="mt-2 text-2xl font-semibold tracking-tight">Dashboard</div>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-600">
-          Indicadores rápidos da base cadastrada e atalhos para os módulos principais.
-        </p>
-      </div>
+    <div className="space-y-8">
+      <PageFlowHeader
+        crumbs={[{ label: "Dashboard" }]}
+        title="Dashboard"
+        description="Indicadores da base cadastrada e atalhos para administradoras, planos e vendas."
+      />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Link

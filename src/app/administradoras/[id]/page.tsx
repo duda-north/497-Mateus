@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { backLinkClass } from "@/components/page-flow/button-classes";
+import { PageFlowHeader } from "@/components/page-flow/PageFlowHeader";
 
 type Administradora = {
   id: string;
@@ -130,44 +132,68 @@ export default function EditarAdministradoraPage() {
   }
 
   if (loading) {
-    return <div className="text-sm text-zinc-600">Carregando...</div>;
+    return (
+      <div className="space-y-6">
+        <PageFlowHeader
+          crumbs={[
+            { label: "Dashboard", href: "/" },
+            { label: "Administradoras", href: "/administradoras" },
+            { label: "…" },
+          ]}
+          title="Carregando administradora…"
+        />
+        <div className="rounded-2xl border border-zinc-200 bg-white p-8 text-center text-sm text-zinc-600">
+          Aguarde enquanto buscamos os dados.
+        </div>
+      </div>
+    );
   }
 
   if (!item) {
     return (
-      <div className="space-y-4">
-        <div className="rounded-2xl border border-zinc-200 bg-white p-5">
-          <div className="text-sm font-medium">Administradora</div>
-          <div className="mt-2 text-sm text-zinc-600">
-            {error ?? "Não encontrada."}
-          </div>
-        </div>
-        <Link className="text-sm font-medium underline" href="/administradoras">
-          Voltar
-        </Link>
+      <div className="space-y-6">
+        <PageFlowHeader
+          crumbs={[
+            { label: "Dashboard", href: "/" },
+            { label: "Administradoras", href: "/administradoras" },
+            { label: "Erro" },
+          ]}
+          title="Administradora não encontrada"
+          description={error ?? "Não foi possível carregar este registro."}
+          actions={
+            <Link href="/administradoras" className={backLinkClass()}>
+              Voltar à lista
+            </Link>
+          }
+        />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
-        <div>
-          <div className="text-sm font-medium text-zinc-500">Administradoras</div>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight">
-            Editar administradora
-          </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-600">
-            Atualize dados cadastrais, contato e regras operacionais.
-          </p>
-        </div>
-        <Link
-          href="/administradoras"
-          className="inline-flex h-10 items-center justify-center rounded-xl border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
-        >
-          Voltar
-        </Link>
-      </div>
+      <PageFlowHeader
+        crumbs={[
+          { label: "Dashboard", href: "/" },
+          { label: "Administradoras", href: "/administradoras" },
+          { label: "Editar" },
+        ]}
+        title={item.nome}
+        description="Atualize dados cadastrais, contato, endereço e regras operacionais (JSON)."
+        actions={
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Link
+              href={`/planos?administradoraId=${encodeURIComponent(item.id)}`}
+              className="inline-flex h-10 items-center justify-center rounded-xl border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2"
+            >
+              Ver planos
+            </Link>
+            <Link href="/administradoras" className={backLinkClass()}>
+              Voltar à lista
+            </Link>
+          </div>
+        }
+      />
 
       <form
         onSubmit={(e) => void onSave(e)}

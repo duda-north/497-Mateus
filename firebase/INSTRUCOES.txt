@@ -1,0 +1,19 @@
+Firebase — o que fazer com os arquivos desta pasta
+===================================================
+
+1) Variáveis de ambiente (Next.js)
+   - Copie `.env.example` para `.env.local` na raiz do projeto.
+   - Preencha os valores em Firebase Console → Configurações do projeto → Seus apps → SDK (config).
+
+2) Regras no console (sem CLI)
+   - Firestore: Console → Firestore Database → Regras → cole o conteúdo de `firestore.rules`.
+   - Storage: Console → Storage → Regras → cole o conteúdo de `storage.rules`.
+   - O padrão atual NEGA todo acesso até você adaptar quando usar Auth / coleções reais.
+
+3) Deploy das regras com Firebase CLI (opcional)
+   - Na raiz do repo existe `firebase.json` apontando para estes arquivos.
+   - `npm i -g firebase-tools` → `firebase login` → `firebase init` (se ainda não tiver projeto) →
+     `firebase deploy --only firestore:rules,storage`
+
+4) Analytics
+   - Com as variáveis `NEXT_PUBLIC_*` corretas, o componente `FirebaseAnalytics` no layout inicializa o Analytics no cliente quando o navegador suporta.

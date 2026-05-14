@@ -1,6 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 type Administradora = { id: string; nome: string; cnpj: string };
@@ -75,6 +76,7 @@ function Field({
 
 export default function NovoPlanoForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [form, setForm] = useState<FormState>(initialState);
   const [administradoras, setAdministradoras] = useState<Administradora[]>([]);
   const [loadingAdms, setLoadingAdms] = useState(true);
@@ -99,6 +101,12 @@ export default function NovoPlanoForm() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    const urlAdm = searchParams.get("administradoraId");
+    if (!urlAdm || !administradoras.some((a) => a.id === urlAdm)) return;
+    setForm((p) => (p.administradoraId === urlAdm ? p : { ...p, administradoraId: urlAdm }));
+  }, [searchParams, administradoras]);
 
   const payload = useMemo(() => {
     const trimOrNull = (s: string) => {
@@ -170,7 +178,13 @@ export default function NovoPlanoForm() {
           </select>
           {administradoras.length === 0 && !loadingAdms ? (
             <div className="mt-2 text-xs text-zinc-500">
-              Cadastre uma administradora antes de criar um plano.
+              Cadastre uma administradora antes de criar um plano.{" "}
+              <Link
+                href="/administradoras/nova"
+                className="font-medium text-zinc-800 underline-offset-2 hover:underline"
+              >
+                Nova administradora
+              </Link>
             </div>
           ) : null}
         </label>

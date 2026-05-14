@@ -1,18 +1,38 @@
+import Link from "next/link";
+import { Suspense } from "react";
+import { backLinkClass } from "@/components/page-flow/button-classes";
+import { PageFlowHeader } from "@/components/page-flow/PageFlowHeader";
 import NovoPlanoForm from "../ui/NovoPlanoForm";
+
+function NovoPlanoFallback() {
+  return (
+    <div className="rounded-2xl border border-zinc-200 bg-white p-8 text-center text-sm text-zinc-600">
+      Carregando formulário…
+    </div>
+  );
+}
 
 export default function NovoPlanoPage() {
   return (
     <div className="space-y-6">
-      <div>
-        <div className="text-sm font-medium text-zinc-500">Planos</div>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Novo plano</h1>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-600">
-          Vincule o plano a uma administradora e defina tipo de bem, crédito e regras em
-          JSON (evoluímos para formulários estruturados depois).
-        </p>
-      </div>
+      <PageFlowHeader
+        crumbs={[
+          { label: "Dashboard", href: "/" },
+          { label: "Planos", href: "/planos" },
+          { label: "Novo" },
+        ]}
+        title="Novo plano"
+        description="Vincule o plano a uma administradora e defina tipo de bem, crédito e regras em JSON (evoluímos para formulários estruturados depois)."
+        actions={
+          <Link href="/planos" className={backLinkClass()}>
+            Voltar à lista
+          </Link>
+        }
+      />
 
-      <NovoPlanoForm />
+      <Suspense fallback={<NovoPlanoFallback />}>
+        <NovoPlanoForm />
+      </Suspense>
     </div>
   );
 }

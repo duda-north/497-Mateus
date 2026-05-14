@@ -1,7 +1,7 @@
 import { assertPlanoBelongsToAdministradora } from "@/lib/assert-plano-administradora";
-import { prisma } from "@/lib/prisma";
+import { createVenda, getAdministradora, listVendas, type VendaStatus } from "@/lib/firestore-repo";
 
-function toVendaStatus(v: unknown) {
+function toVendaStatus(v: unknown): VendaStatus | null {
   if (v === "RASCUNHO" || v === "ENVIADA" || v === "FECHADA" || v === "CANCELADA") {
     return v;
   }
@@ -13,20 +13,9 @@ export async function GET(req: Request) {
   const administradoraId = url.searchParams.get("administradoraId")?.trim() || null;
   const status = toVendaStatus(url.searchParams.get("status"));
 
-  const vendas = await prisma.venda.findMany({
-    where: {
-      ...(administradoraId ? { administradoraId } : {}),
-      ...(status ? { status } : {}),
-    },
-    include: {
-      administradora: {
-        select: { id: true, nome: true, cnpj: true },
-      },
-      plano: {
-        select: { id: true, nome: true, tipoBem: true },
-      },
-    },
-    orderBy: { createdAt: "desc" },
+  const vendas = await listVendas({
+    administradoraId,
+    status,
   });
 
   return Response.json(vendas);
@@ -49,7 +38,7 @@ export async function POST(req: Request) {
     return Response.json({ error: "Administradora é obrigatória." }, { status: 400 });
   }
 
-  const adm = await prisma.administradora.findUnique({ where: { id: administradoraId } });
+  const adm = await getAdministradora(administradoraId);
   if (!adm) {
     return Response.json({ error: "Administradora não encontrada." }, { status: 400 });
   }
@@ -92,29 +81,18 @@ export async function POST(req: Request) {
   }
 
   try {
-    const created = await prisma.venda.create({
-      data: {
-        administradoraId,
-        status,
-        titulo,
-        descricao: body.descricao?.trim() ? body.descricao.trim() : null,
-        valorCentavos: valorCentavos === null ? null : (valorCentavos as number),
-        dataVenda,
-        observacoes: body.observacoes?.trim() ? body.observacoes.trim() : null,
-        planoId: planoIdNorm,
-      },
-      include: {
-        administradora: {
-          select: { id: true, nome: true, cnpj: true },
-        },
-        plano: {
-          select: { id: true, nome: true, tipoBem: true },
-        },
-      },
+    const created = await createVenda({
+      administradoraId,
+      planoId: planoIdNorm,
+      status,
+      titulo,
+      descricao: body.descricao?.trim() ? body.descricao.trim() : null,
+      valorCentavos: valorCentavos === null ? null : (valorCentavos as number),
+      dataVenda,
+      observacoes: body.observacoes?.trim() ? body.observacoes.trim() : null,
     });
     return Response.json(created, { status: 201 });
-  } catch (e) {
+  } catch {
     return Response.json({ error: "Não foi possível cadastrar a venda." }, { status: 400 });
   }
 }
-

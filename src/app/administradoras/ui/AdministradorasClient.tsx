@@ -104,7 +104,7 @@ export default function AdministradorasClient() {
       ) : null}
 
       <div className="mt-4 overflow-x-auto">
-        <table className="w-full min-w-[900px] text-left text-sm">
+        <table className="w-full min-w-[1040px] text-left text-sm">
           <thead className="text-xs text-zinc-500">
             <tr className="border-b border-zinc-200">
               <th className="py-3 pr-4 font-medium">Nome</th>
@@ -151,7 +151,13 @@ export default function AdministradorasClient() {
                     {new Date(a.createdAt).toLocaleDateString("pt-BR")}
                   </td>
                   <td className="py-3 pr-0 text-right">
-                    <div className="flex justify-end gap-2">
+                    <div className="flex flex-wrap justify-end gap-2">
+                      <Link
+                        href={`/planos?administradoraId=${encodeURIComponent(a.id)}`}
+                        className="inline-flex h-9 items-center justify-center rounded-xl border border-zinc-200 bg-white px-3 text-xs font-medium text-zinc-700 hover:bg-zinc-50"
+                      >
+                        Planos
+                      </Link>
                       <Link
                         href={`/administradoras/${a.id}`}
                         className="inline-flex h-9 items-center justify-center rounded-xl border border-zinc-200 bg-white px-3 text-xs font-medium text-zinc-700 hover:bg-zinc-50"

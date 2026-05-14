@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { backLinkClass } from "@/components/page-flow/button-classes";
+import { PageFlowHeader } from "@/components/page-flow/PageFlowHeader";
 
 type Administradora = { id: string; nome: string; cnpj: string };
 type PlanoMini = { id: string; nome: string; tipoBem: string };
@@ -187,43 +189,59 @@ export default function EditarVendaForm() {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-zinc-200 bg-white p-8 text-center text-sm text-zinc-600">
-        Carregando dados da venda…
+      <div className="space-y-6">
+        <PageFlowHeader
+          crumbs={[
+            { label: "Dashboard", href: "/" },
+            { label: "Vendas", href: "/vendas" },
+            { label: "…" },
+          ]}
+          title="Carregando venda…"
+        />
+        <div className="rounded-2xl border border-zinc-200 bg-white p-8 text-center text-sm text-zinc-600">
+          Aguarde enquanto buscamos os dados.
+        </div>
       </div>
     );
   }
 
   if (!item) {
     return (
-      <div className="space-y-4">
-        <div className="rounded-2xl border border-zinc-200 bg-white p-5">
-          <div className="text-sm font-medium">Venda</div>
-          <div className="mt-2 text-sm text-zinc-600">{error ?? "Não encontrada."}</div>
-        </div>
-        <Link className="text-sm font-medium underline" href="/vendas">
-          Voltar
-        </Link>
+      <div className="space-y-6">
+        <PageFlowHeader
+          crumbs={[
+            { label: "Dashboard", href: "/" },
+            { label: "Vendas", href: "/vendas" },
+            { label: "Erro" },
+          ]}
+          title="Venda não encontrada"
+          description={error ?? "Não foi possível carregar este registro."}
+          actions={
+            <Link href="/vendas" className={backLinkClass()}>
+              Voltar à lista
+            </Link>
+          }
+        />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
-        <div>
-          <div className="text-sm font-medium text-zinc-500">Vendas</div>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight">Editar venda</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-600">
-            Atualize administradora, status, valores e detalhes.
-          </p>
-        </div>
-        <Link
-          href="/vendas"
-          className="inline-flex h-10 items-center justify-center rounded-xl border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
-        >
-          Voltar
-        </Link>
-      </div>
+      <PageFlowHeader
+        crumbs={[
+          { label: "Dashboard", href: "/" },
+          { label: "Vendas", href: "/vendas" },
+          { label: "Editar" },
+        ]}
+        title={item.titulo}
+        description="Atualize administradora, plano, status, valores e detalhes da venda."
+        actions={
+          <Link href="/vendas" className={backLinkClass()}>
+            Voltar à lista
+          </Link>
+        }
+      />
 
       <form
         onSubmit={(e) => void onSave(e)}
@@ -272,7 +290,21 @@ export default function EditarVendaForm() {
             </select>
             {form.administradoraId && planos.length === 0 ? (
               <div className="mt-2 text-xs text-zinc-500">
-                Nenhum plano para esta administradora.
+                Nenhum plano para esta administradora.{" "}
+                <Link
+                  href={`/planos/nova?administradoraId=${encodeURIComponent(form.administradoraId)}`}
+                  className="font-medium text-zinc-800 underline-offset-2 hover:underline"
+                >
+                  Cadastrar plano
+                </Link>{" "}
+                ou{" "}
+                <Link
+                  href={`/planos?administradoraId=${encodeURIComponent(form.administradoraId)}`}
+                  className="font-medium text-zinc-800 underline-offset-2 hover:underline"
+                >
+                  ver lista de planos
+                </Link>
+                .
               </div>
             ) : null}
           </label>

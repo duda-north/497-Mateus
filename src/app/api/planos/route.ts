@@ -1,19 +1,10 @@
-import { prisma } from "@/lib/prisma";
+import { createPlano, getAdministradora, listPlanos } from "@/lib/firestore-repo";
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const administradoraId = url.searchParams.get("administradoraId")?.trim() || null;
 
-  const planos = await prisma.plano.findMany({
-    where: administradoraId ? { administradoraId } : {},
-    include: {
-      administradora: {
-        select: { id: true, nome: true, cnpj: true },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-  });
-
+  const planos = await listPlanos(administradoraId);
   return Response.json(planos);
 }
 
@@ -33,7 +24,7 @@ export async function POST(req: Request) {
     return Response.json({ error: "Administradora é obrigatória." }, { status: 400 });
   }
 
-  const adm = await prisma.administradora.findUnique({ where: { id: administradoraId } });
+  const adm = await getAdministradora(administradoraId);
   if (!adm) {
     return Response.json({ error: "Administradora não encontrada." }, { status: 400 });
   }
@@ -59,28 +50,19 @@ export async function POST(req: Request) {
   }
 
   try {
-    const created = await prisma.plano.create({
-      data: {
-        administradoraId,
-        nome,
-        tipoBem,
-        valorCreditoCentavos:
-          valorCreditoCentavos === null ? null : (valorCreditoCentavos as number),
-        regrasComissaoJson: body.regrasComissaoJson?.trim()
-          ? body.regrasComissaoJson.trim()
-          : null,
-        regrasRecebimentoJson: body.regrasRecebimentoJson?.trim()
-          ? body.regrasRecebimentoJson.trim()
-          : null,
-        regrasEstornoJson: body.regrasEstornoJson?.trim()
-          ? body.regrasEstornoJson.trim()
-          : null,
-      },
-      include: {
-        administradora: {
-          select: { id: true, nome: true, cnpj: true },
-        },
-      },
+    const created = await createPlano({
+      administradoraId,
+      nome,
+      tipoBem,
+      valorCreditoCentavos:
+        valorCreditoCentavos === null ? null : (valorCreditoCentavos as number),
+      regrasComissaoJson: body.regrasComissaoJson?.trim()
+        ? body.regrasComissaoJson.trim()
+        : null,
+      regrasRecebimentoJson: body.regrasRecebimentoJson?.trim()
+        ? body.regrasRecebimentoJson.trim()
+        : null,
+      regrasEstornoJson: body.regrasEstornoJson?.trim() ? body.regrasEstornoJson.trim() : null,
     });
     return Response.json(created, { status: 201 });
   } catch {

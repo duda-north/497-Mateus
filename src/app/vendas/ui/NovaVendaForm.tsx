@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
@@ -219,7 +220,13 @@ export default function NovaVendaForm() {
           </select>
           {administradoras.length === 0 && !loadingAdms ? (
             <div className="mt-2 text-xs text-zinc-500">
-              Você precisa cadastrar uma administradora antes.
+              Você precisa cadastrar uma administradora antes.{" "}
+              <Link
+                href="/administradoras/nova"
+                className="font-medium text-zinc-800 underline-offset-2 hover:underline"
+              >
+                Nova administradora
+              </Link>
             </div>
           ) : null}
         </label>
@@ -241,7 +248,21 @@ export default function NovaVendaForm() {
           </select>
           {form.administradoraId && planos.length === 0 ? (
             <div className="mt-2 text-xs text-zinc-500">
-              Nenhum plano para esta administradora. Cadastre em Planos.
+              Nenhum plano para esta administradora.{" "}
+              <Link
+                href={`/planos/nova?administradoraId=${encodeURIComponent(form.administradoraId)}`}
+                className="font-medium text-zinc-800 underline-offset-2 hover:underline"
+              >
+                Cadastrar plano
+              </Link>{" "}
+              ou{" "}
+              <Link
+                href={`/planos?administradoraId=${encodeURIComponent(form.administradoraId)}`}
+                className="font-medium text-zinc-800 underline-offset-2 hover:underline"
+              >
+                ver planos
+              </Link>
+              .
             </div>
           ) : null}
         </label>

@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { backLinkClass } from "@/components/page-flow/button-classes";
+import { PageFlowHeader } from "@/components/page-flow/PageFlowHeader";
 
 type Administradora = { id: string; nome: string; cnpj: string };
 
@@ -135,40 +137,60 @@ export default function EditarPlanoForm() {
   }
 
   if (loading) {
-    return <div className="text-sm text-zinc-600">Carregando...</div>;
+    return (
+      <div className="space-y-6">
+        <PageFlowHeader
+          crumbs={[
+            { label: "Dashboard", href: "/" },
+            { label: "Planos", href: "/planos" },
+            { label: "…" },
+          ]}
+          title="Carregando plano…"
+        />
+        <div className="rounded-2xl border border-zinc-200 bg-white p-8 text-center text-sm text-zinc-600">
+          Aguarde enquanto buscamos os dados.
+        </div>
+      </div>
+    );
   }
 
   if (!item) {
     return (
-      <div className="space-y-4">
-        <div className="rounded-2xl border border-zinc-200 bg-white p-5">
-          <div className="text-sm font-medium">Plano</div>
-          <div className="mt-2 text-sm text-zinc-600">{error ?? "Não encontrado."}</div>
-        </div>
-        <Link className="text-sm font-medium underline" href="/planos">
-          Voltar
-        </Link>
+      <div className="space-y-6">
+        <PageFlowHeader
+          crumbs={[
+            { label: "Dashboard", href: "/" },
+            { label: "Planos", href: "/planos" },
+            { label: "Erro" },
+          ]}
+          title="Plano não encontrado"
+          description={error ?? "Não foi possível carregar este registro."}
+          actions={
+            <Link href="/planos" className={backLinkClass()}>
+              Voltar à lista
+            </Link>
+          }
+        />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
-        <div>
-          <div className="text-sm font-medium text-zinc-500">Planos</div>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight">Editar plano</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-600">
-            Ajuste administradora, dados do plano e regras em JSON.
-          </p>
-        </div>
-        <Link
-          href="/planos"
-          className="inline-flex h-10 items-center justify-center rounded-xl border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
-        >
-          Voltar
-        </Link>
-      </div>
+      <PageFlowHeader
+        crumbs={[
+          { label: "Dashboard", href: "/" },
+          { label: "Planos", href: "/planos" },
+          { label: "Editar" },
+        ]}
+        title={item.nome}
+        description="Ajuste administradora, dados do plano e regras em JSON."
+        actions={
+          <Link href="/planos" className={backLinkClass()}>
+            Voltar à lista
+          </Link>
+        }
+      />
 
       <form
         onSubmit={(e) => void onSave(e)}

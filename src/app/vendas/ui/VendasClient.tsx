@@ -225,7 +225,12 @@ export default function VendasClient() {
                   <td className="py-3 pr-4 font-medium text-zinc-900">{v.titulo}</td>
                   <td className="py-3 pr-4 text-zinc-700">
                     <div className="leading-5">
-                      <div className="text-zinc-800">{v.administradora?.nome ?? "—"}</div>
+                      <Link
+                        href={`/administradoras/${v.administradoraId}`}
+                        className="font-medium text-zinc-900 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 rounded-sm"
+                      >
+                        {v.administradora?.nome ?? "—"}
+                      </Link>
                       <div className="text-xs text-zinc-500">
                         {v.administradora?.cnpj ?? ""}
                       </div>
@@ -233,7 +238,16 @@ export default function VendasClient() {
                   </td>
                   <td className="py-3 pr-4 text-zinc-700">
                     <div className="leading-5">
-                      <div className="text-zinc-800">{v.plano?.nome ?? "—"}</div>
+                      {v.plano ? (
+                        <Link
+                          href={`/planos/${v.plano.id}`}
+                          className="font-medium text-zinc-900 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 rounded-sm"
+                        >
+                          {v.plano.nome}
+                        </Link>
+                      ) : (
+                        <div className="text-zinc-800">—</div>
+                      )}
                       {v.plano?.tipoBem ? (
                         <div className="text-xs text-zinc-500">{v.plano.tipoBem}</div>
                       ) : null}

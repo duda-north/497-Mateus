@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { getPlanoAdministradoraId } from "@/lib/firestore-repo";
 
 /**
  * Garante que, se `planoId` for informado, o plano exista e pertença à administradora.
@@ -11,12 +11,9 @@ export async function assertPlanoBelongsToAdministradora(
   const trimmed = typeof planoId === "string" ? planoId.trim() : "";
   if (!trimmed) return { ok: true };
 
-  const plano = await prisma.plano.findUnique({
-    where: { id: trimmed },
-    select: { administradoraId: true },
-  });
-  if (!plano) return { ok: false, message: "Plano não encontrado." };
-  if (plano.administradoraId !== administradoraId) {
+  const admId = await getPlanoAdministradoraId(trimmed);
+  if (!admId) return { ok: false, message: "Plano não encontrado." };
+  if (admId !== administradoraId) {
     return {
       ok: false,
       message: "O plano não pertence à administradora selecionada.",

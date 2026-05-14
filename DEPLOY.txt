@@ -1,0 +1,43 @@
+Deploy do consorcio-ops (Next.js 16 + Firestore + Firebase Admin)
+==================================================================
+
+1) Firebase — projeto e Firestore
+   - Crie um projeto em https://console.firebase.google.com
+   - Ative **Firestore** (modo produção ou teste; regras em firebase/firestore.rules).
+   - O CRUD (administradoras, planos, vendas) usa coleções:
+       administradoras/{id}
+       planos/{id}
+       vendas/{id}
+
+2) Conta de serviço (obrigatório no servidor)
+   - Firebase Console → Configurações do projeto → Contas de serviço →
+     “Gerar nova chave privada” (baixa um arquivo JSON).
+   - No Netlify/Vercel e no `.env.local`, defina **uma** variável:
+       FIREBASE_SERVICE_ACCOUNT_JSON
+     com o **conteúdo inteiro** do JSON em **uma linha** (minificado), sem aspas extras.
+   - Deve ser o mesmo projeto Firebase das variáveis `NEXT_PUBLIC_FIREBASE_*`.
+
+3) Netlify
+   - Importe o repositório; `netlify.toml` na raiz usa `npm run build`.
+   - Environment variables (Production / Deploy previews):
+       FIREBASE_SERVICE_ACCOUNT_JSON   (segredo)
+       NEXT_PUBLIC_FIREBASE_API_KEY
+       NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+       NEXT_PUBLIC_FIREBASE_PROJECT_ID
+       NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+       NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+       NEXT_PUBLIC_FIREBASE_APP_ID
+       NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID (opcional)
+   - Não é mais necessário DATABASE_URL / Prisma / Turso para este app.
+
+4) Vercel
+   - `vercel.json` usa `npm run build`.
+   - Mesmas variáveis do item 3.
+
+5) Build local
+   - Coloque `FIREBASE_SERVICE_ACCOUNT_JSON` no `.env.local` (JSON minificado).
+   - `npm run build`
+
+6) Regras do Firestore
+   - O SDK **web** continua bloqueado (`allow false`) por padrão; o servidor usa
+     Admin SDK e ignora essas regras para leitura/escrita das coleções acima.

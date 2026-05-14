@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 type AdministradoraMini = {
@@ -44,12 +45,18 @@ function formatMoneyPtBrFromCentavos(v: number | null) {
 }
 
 export default function PlanosClient() {
+  const searchParams = useSearchParams();
   const [items, setItems] = useState<Plano[]>([]);
   const [administradoras, setAdministradoras] = useState<Administradora[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [administradoraId, setAdministradoraId] = useState("");
+
+  useEffect(() => {
+    const fromUrl = searchParams.get("administradoraId");
+    if (fromUrl) setAdministradoraId(fromUrl);
+  }, [searchParams]);
 
   async function reload() {
     setLoading(true);
@@ -166,7 +173,12 @@ export default function PlanosClient() {
                   <td className="py-3 pr-4 font-medium text-zinc-900">{p.nome}</td>
                   <td className="py-3 pr-4 text-zinc-700">
                     <div className="leading-5">
-                      <div className="text-zinc-800">{p.administradora?.nome ?? "—"}</div>
+                      <Link
+                        href={`/administradoras/${p.administradoraId}`}
+                        className="font-medium text-zinc-900 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 rounded-sm"
+                      >
+                        {p.administradora?.nome ?? "—"}
+                      </Link>
                       <div className="text-xs text-zinc-500">{p.administradora?.cnpj ?? ""}</div>
                     </div>
                   </td>

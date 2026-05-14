@@ -1,7 +1,13 @@
 import { assertPlanoBelongsToAdministradora } from "@/lib/assert-plano-administradora";
-import { prisma } from "@/lib/prisma";
+import {
+  deleteVenda,
+  getAdministradora,
+  getVenda,
+  updateVenda,
+  type VendaStatus,
+} from "@/lib/firestore-repo";
 
-function toVendaStatus(v: unknown) {
+function toVendaStatus(v: unknown): VendaStatus | null {
   if (v === "RASCUNHO" || v === "ENVIADA" || v === "FECHADA" || v === "CANCELADA") {
     return v;
   }
@@ -13,17 +19,7 @@ type Params = { params: Promise<{ id: string }> };
 export async function GET(_req: Request, { params }: Params) {
   const { id } = await params;
 
-  const venda = await prisma.venda.findUnique({
-    where: { id },
-    include: {
-      administradora: {
-        select: { id: true, nome: true, cnpj: true },
-      },
-      plano: {
-        select: { id: true, nome: true, tipoBem: true },
-      },
-    },
-  });
+  const venda = await getVenda(id);
   if (!venda) {
     return Response.json({ error: "Venda não encontrada." }, { status: 404 });
   }
@@ -44,7 +40,7 @@ export async function PUT(req: Request, { params }: Params) {
     planoId: string | null;
   }>;
 
-  const existing = await prisma.venda.findUnique({ where: { id } });
+  const existing = await getVenda(id);
   if (!existing) {
     return Response.json({ error: "Venda não encontrada." }, { status: 404 });
   }
@@ -76,7 +72,7 @@ export async function PUT(req: Request, { params }: Params) {
     body.administradoraId !== undefined ? body.administradoraId.trim() : existing.administradoraId;
 
   if (body.administradoraId !== undefined) {
-    const adm = await prisma.administradora.findUnique({ where: { id: nextAdministradoraId } });
+    const adm = await getAdministradora(nextAdministradoraId);
     if (!adm) {
       return Response.json({ error: "Administradora não encontrada." }, { status: 400 });
     }
@@ -105,37 +101,29 @@ export async function PUT(req: Request, { params }: Params) {
         : new Date(body.dataVenda);
 
   try {
-    const updated = await prisma.venda.update({
-      where: { id },
-      data: {
-        ...(body.administradoraId !== undefined
-          ? { administradoraId: body.administradoraId.trim() }
-          : {}),
-        ...(body.status !== undefined ? { status: toVendaStatus(body.status)! } : {}),
-        ...(body.titulo !== undefined ? { titulo: body.titulo.trim() } : {}),
-        ...(body.descricao !== undefined
-          ? { descricao: body.descricao?.trim() ? body.descricao.trim() : null }
-          : {}),
-        ...(body.valorCentavos !== undefined
-          ? { valorCentavos: body.valorCentavos === null ? null : Math.trunc(body.valorCentavos) }
-          : {}),
-        ...(body.dataVenda !== undefined ? { dataVenda } : {}),
-        ...(body.observacoes !== undefined
-          ? { observacoes: body.observacoes?.trim() ? body.observacoes.trim() : null }
-          : {}),
-        ...(body.planoId !== undefined ? { planoId: finalPlanoId } : {}),
-      },
-      include: {
-        administradora: {
-          select: { id: true, nome: true, cnpj: true },
-        },
-        plano: {
-          select: { id: true, nome: true, tipoBem: true },
-        },
-      },
+    const updated = await updateVenda(id, {
+      ...(body.administradoraId !== undefined
+        ? { administradoraId: body.administradoraId.trim() }
+        : {}),
+      ...(body.status !== undefined ? { status: toVendaStatus(body.status)! } : {}),
+      ...(body.titulo !== undefined ? { titulo: body.titulo.trim() } : {}),
+      ...(body.descricao !== undefined
+        ? { descricao: body.descricao?.trim() ? body.descricao.trim() : null }
+        : {}),
+      ...(body.valorCentavos !== undefined
+        ? { valorCentavos: body.valorCentavos === null ? null : Math.trunc(body.valorCentavos) }
+        : {}),
+      ...(body.dataVenda !== undefined ? { dataVenda } : {}),
+      ...(body.observacoes !== undefined
+        ? { observacoes: body.observacoes?.trim() ? body.observacoes.trim() : null }
+        : {}),
+      ...(body.planoId !== undefined ? { planoId: finalPlanoId } : {}),
     });
+    if (!updated) {
+      return Response.json({ error: "Venda não encontrada." }, { status: 404 });
+    }
     return Response.json(updated);
-  } catch (e) {
+  } catch {
     return Response.json({ error: "Não foi possível atualizar a venda." }, { status: 400 });
   }
 }
@@ -143,10 +131,9 @@ export async function PUT(req: Request, { params }: Params) {
 export async function DELETE(_req: Request, { params }: Params) {
   const { id } = await params;
   try {
-    await prisma.venda.delete({ where: { id } });
+    await deleteVenda(id);
     return new Response(null, { status: 204 });
-  } catch (e) {
+  } catch {
     return Response.json({ error: "Não foi possível excluir a venda." }, { status: 400 });
   }
 }
-
