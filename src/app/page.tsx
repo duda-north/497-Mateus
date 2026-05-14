@@ -5,10 +5,36 @@ import { getDashboardCounts } from "@/lib/firestore-repo";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const { nAdministradoras, nPlanos, nVendas, nVendasFechadas } = await getDashboardCounts();
+  let nAdministradoras = 0;
+  let nPlanos = 0;
+  let nVendas = 0;
+  let nVendasFechadas = 0;
+  let countsError: string | null = null;
+
+  try {
+    const c = await getDashboardCounts();
+    nAdministradoras = c.nAdministradoras;
+    nPlanos = c.nPlanos;
+    nVendas = c.nVendas;
+    nVendasFechadas = c.nVendasFechadas;
+  } catch (e) {
+    const devDetail = process.env.NODE_ENV === "development" && e instanceof Error ? e.message : null;
+    countsError = devDetail
+      ? devDetail
+      : "Confira no painel da hospedagem a variável FIREBASE_SERVICE_ACCOUNT_JSON (JSON da conta de serviço) e se o Firestore está ativo no mesmo projeto Firebase das variáveis NEXT_PUBLIC_FIREBASE_*.";
+  }
 
   return (
     <div className="space-y-8">
+      {countsError ? (
+        <div
+          role="alert"
+          className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950"
+        >
+          <strong className="font-medium">Não foi possível carregar os totais do dashboard.</strong>{" "}
+          {countsError}
+        </div>
+      ) : null}
       <PageFlowHeader
         crumbs={[{ label: "Dashboard" }]}
         title="Dashboard"
