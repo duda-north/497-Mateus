@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { createPlano, listAdministradoras } from "@/lib/firestore-db";
 
 type Administradora = { id: string; nome: string; cnpj: string };
 
@@ -25,16 +26,6 @@ const initialState: FormState = {
   regrasRecebimentoJson: "",
   regrasEstornoJson: "",
 };
-
-async function api<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
-  const res = await fetch(input, init);
-  if (!res.ok) {
-    const data = (await res.json().catch(() => ({}))) as { error?: string };
-    throw new Error(data.error || "Erro inesperado.");
-  }
-  if (res.status === 204) return undefined as T;
-  return (await res.json()) as T;
-}
 
 function parseValorToCentavos(input: string): number | null {
   const t = input.trim();
@@ -86,10 +77,10 @@ export default function NovoPlanoForm() {
   useEffect(() => {
     let alive = true;
     setLoadingAdms(true);
-    api<Administradora[]>("/api/administradoras")
+    listAdministradoras()
       .then((data) => {
         if (!alive) return;
-        setAdministradoras(data);
+        setAdministradoras(data.map((a) => ({ id: a.id, nome: a.nome, cnpj: a.cnpj })));
         if (!form.administradoraId && data[0]?.id) {
           setForm((p) => ({ ...p, administradoraId: data[0].id }));
         }
@@ -139,10 +130,17 @@ export default function NovoPlanoForm() {
     }
     setSaving(true);
     try {
-      await api("/api/planos", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(payload),
+      await createPlano({
+        administradoraId: payload.administradoraId,
+        nome: payload.nome,
+        tipoBem: payload.tipoBem,
+        valorCreditoCentavos:
+          payload.valorCreditoCentavos !== null && Number.isNaN(payload.valorCreditoCentavos)
+            ? null
+            : payload.valorCreditoCentavos,
+        regrasComissaoJson: payload.regrasComissaoJson,
+        regrasRecebimentoJson: payload.regrasRecebimentoJson,
+        regrasEstornoJson: payload.regrasEstornoJson,
       });
       router.push("/planos");
       router.refresh();

@@ -2,28 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { deleteAdministradora, listAdministradoras, type AdministradoraRow } from "@/lib/firestore-db";
 
-type Administradora = {
-  id: string;
-  nome: string;
-  cnpj: string;
-  telefone: string | null;
-  email: string | null;
-  contatoPrincipal: string | null;
-  enderecoCidade: string | null;
-  enderecoUf: string | null;
-  createdAt: string;
-};
-
-async function api<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
-  const res = await fetch(input, init);
-  if (!res.ok) {
-    const data = (await res.json().catch(() => ({}))) as { error?: string };
-    throw new Error(data.error || "Erro inesperado.");
-  }
-  if (res.status === 204) return undefined as T;
-  return (await res.json()) as T;
-}
+type Administradora = AdministradoraRow;
 
 const controlClass =
   "h-10 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 outline-none focus-visible:border-zinc-400 focus-visible:ring-2 focus-visible:ring-zinc-300/60";
@@ -38,7 +19,7 @@ export default function AdministradorasClient() {
     setLoading(true);
     setError(null);
     try {
-      const data = await api<Administradora[]>("/api/administradoras");
+      const data = await listAdministradoras();
       setItems(data);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro ao carregar.");
@@ -63,7 +44,7 @@ export default function AdministradorasClient() {
   async function onDelete(id: string) {
     if (!confirm("Excluir administradora?")) return;
     try {
-      await api<void>(`/api/administradoras/${id}`, { method: "DELETE" });
+      await deleteAdministradora(id);
       setItems((prev) => prev.filter((x) => x.id !== id));
     } catch (e) {
       alert(e instanceof Error ? e.message : "Erro ao excluir.");

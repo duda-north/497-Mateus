@@ -5,32 +5,18 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { backLinkClass } from "@/components/page-flow/button-classes";
 import { PageFlowHeader } from "@/components/page-flow/PageFlowHeader";
+import {
+  getVenda,
+  listAdministradoras,
+  listPlanosMiniByAdministradora,
+  updateVenda,
+  type VendaRow,
+} from "@/lib/firestore-db";
 
 type Administradora = { id: string; nome: string; cnpj: string };
 type PlanoMini = { id: string; nome: string; tipoBem: string };
 
-type Venda = {
-  id: string;
-  administradoraId: string;
-  planoId: string | null;
-  status: "RASCUNHO" | "ENVIADA" | "FECHADA" | "CANCELADA";
-  titulo: string;
-  descricao: string | null;
-  valorCentavos: number | null;
-  dataVenda: string | null;
-  observacoes: string | null;
-  plano: { id: string; nome: string; tipoBem: string } | null;
-};
-
-async function api<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
-  const res = await fetch(input, init);
-  if (!res.ok) {
-    const data = (await res.json().catch(() => ({}))) as { error?: string };
-    throw new Error(data.error || "Erro inesperado.");
-  }
-  if (res.status === 204) return undefined as T;
-  return (await res.json()) as T;
-}
+type Venda = VendaRow;
 
 function centavosToValorInput(v: number | null) {
   if (v === null) return "";
@@ -85,10 +71,15 @@ export default function EditarVendaForm() {
     setLoading(true);
     setError(null);
 
-    Promise.all([api<Administradora[]>("/api/administradoras"), api<Venda>(`/api/vendas/${id}`)])
+    Promise.all([listAdministradoras(), getVenda(id)])
       .then(([adms, venda]) => {
         if (!alive) return;
-        setAdministradoras(adms);
+        setAdministradoras(adms.map((a) => ({ id: a.id, nome: a.nome, cnpj: a.cnpj })));
+        if (!venda) {
+          setError("Venda não encontrada.");
+          setItem(null);
+          return;
+        }
         setItem(venda);
         setForm({
           administradoraId: venda.administradoraId ?? "",
@@ -115,9 +106,7 @@ export default function EditarVendaForm() {
       return;
     }
     let alive = true;
-    void api<PlanoMini[]>(
-      `/api/planos?administradoraId=${encodeURIComponent(form.administradoraId)}`,
-    )
+    void listPlanosMiniByAdministradora(form.administradoraId)
       .then((data) => {
         if (!alive) return;
         setPlanos(data);
@@ -173,10 +162,15 @@ export default function EditarVendaForm() {
     }
 
     try {
-      await api(`/api/vendas/${id}`, {
-        method: "PUT",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(payload),
+      await updateVenda(id, {
+        administradoraId: payload.administradoraId,
+        planoId: payload.planoId,
+        titulo: payload.titulo,
+        status: payload.status,
+        valorCentavos: payload.valorCentavos,
+        dataVenda: form.dataVenda ? new Date(`${form.dataVenda}T00:00:00.000Z`) : null,
+        descricao: payload.descricao,
+        observacoes: payload.observacoes,
       });
       router.push("/vendas");
       router.refresh();

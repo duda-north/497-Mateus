@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { createAdministradora } from "@/lib/firestore-db";
 
 type FormState = {
   nome: string;
@@ -34,19 +35,6 @@ const initialState: FormState = {
   enderecoCep: "",
   regrasOperacionaisJson: "",
 };
-
-async function postJson<T>(url: string, body: unknown): Promise<T> {
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const data = (await res.json().catch(() => ({}))) as { error?: string };
-    throw new Error(data.error || "Erro inesperado.");
-  }
-  return (await res.json()) as T;
-}
 
 function Field({
   label,
@@ -111,7 +99,7 @@ export default function NovaAdministradoraForm() {
     setError(null);
     setSaving(true);
     try {
-      await postJson("/api/administradoras", payload);
+      await createAdministradora(payload);
       router.push("/administradoras");
       router.refresh();
     } catch (e) {

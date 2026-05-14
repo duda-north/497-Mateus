@@ -5,33 +5,9 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { backLinkClass } from "@/components/page-flow/button-classes";
 import { PageFlowHeader } from "@/components/page-flow/PageFlowHeader";
+import { getAdministradora, updateAdministradora, type AdministradoraRow } from "@/lib/firestore-db";
 
-type Administradora = {
-  id: string;
-  nome: string;
-  cnpj: string;
-  telefone: string | null;
-  email: string | null;
-  contatoPrincipal: string | null;
-  enderecoLogradouro: string | null;
-  enderecoNumero: string | null;
-  enderecoComplemento: string | null;
-  enderecoBairro: string | null;
-  enderecoCidade: string | null;
-  enderecoUf: string | null;
-  enderecoCep: string | null;
-  regrasOperacionaisJson: string | null;
-};
-
-async function api<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
-  const res = await fetch(input, init);
-  if (!res.ok) {
-    const data = (await res.json().catch(() => ({}))) as { error?: string };
-    throw new Error(data.error || "Erro inesperado.");
-  }
-  if (res.status === 204) return undefined as T;
-  return (await res.json()) as T;
-}
+type Administradora = AdministradoraRow;
 
 export default function EditarAdministradoraPage() {
   const params = useParams<{ id: string }>();
@@ -63,9 +39,14 @@ export default function EditarAdministradoraPage() {
     let alive = true;
     setLoading(true);
     setError(null);
-    api<Administradora>(`/api/administradoras/${id}`)
+    getAdministradora(id)
       .then((data) => {
         if (!alive) return;
+        if (!data) {
+          setError("Administradora não encontrada.");
+          setItem(null);
+          return;
+        }
         setItem(data);
         setForm({
           nome: data.nome ?? "",
@@ -117,11 +98,7 @@ export default function EditarAdministradoraPage() {
     setSaving(true);
     setError(null);
     try {
-      await api(`/api/administradoras/${id}`, {
-        method: "PUT",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      await updateAdministradora(id, payload);
       router.push("/administradoras");
       router.refresh();
     } catch (e) {

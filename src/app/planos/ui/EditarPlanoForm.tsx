@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { backLinkClass } from "@/components/page-flow/button-classes";
 import { PageFlowHeader } from "@/components/page-flow/PageFlowHeader";
+import { getPlano, listAdministradoras, updatePlano } from "@/lib/firestore-db";
 
 type Administradora = { id: string; nome: string; cnpj: string };
 
@@ -18,16 +19,6 @@ type Plano = {
   regrasRecebimentoJson: string | null;
   regrasEstornoJson: string | null;
 };
-
-async function api<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
-  const res = await fetch(input, init);
-  if (!res.ok) {
-    const data = (await res.json().catch(() => ({}))) as { error?: string };
-    throw new Error(data.error || "Erro inesperado.");
-  }
-  if (res.status === 204) return undefined as T;
-  return (await res.json()) as T;
-}
 
 function centavosToValorInput(v: number | null) {
   if (v === null) return "";
@@ -68,10 +59,15 @@ export default function EditarPlanoForm() {
     let alive = true;
     setLoading(true);
     setError(null);
-    Promise.all([api<Administradora[]>("/api/administradoras"), api<Plano>(`/api/planos/${id}`)])
+    Promise.all([listAdministradoras(), getPlano(id)])
       .then(([adms, plano]) => {
         if (!alive) return;
-        setAdministradoras(adms);
+        setAdministradoras(adms.map((a) => ({ id: a.id, nome: a.nome, cnpj: a.cnpj })));
+        if (!plano) {
+          setError("Plano não encontrado.");
+          setItem(null);
+          return;
+        }
         setItem(plano);
         setForm({
           administradoraId: plano.administradoraId ?? "",
@@ -122,10 +118,17 @@ export default function EditarPlanoForm() {
       return;
     }
     try {
-      await api(`/api/planos/${id}`, {
-        method: "PUT",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(payload),
+      await updatePlano(id, {
+        administradoraId: payload.administradoraId,
+        nome: payload.nome,
+        tipoBem: payload.tipoBem,
+        valorCreditoCentavos:
+          payload.valorCreditoCentavos !== null && Number.isNaN(payload.valorCreditoCentavos)
+            ? null
+            : payload.valorCreditoCentavos,
+        regrasComissaoJson: payload.regrasComissaoJson,
+        regrasRecebimentoJson: payload.regrasRecebimentoJson,
+        regrasEstornoJson: payload.regrasEstornoJson,
       });
       router.push("/planos");
       router.refresh();

@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AppShell } from "@/components/app-shell/AppShell";
 import { FirebaseAnalytics } from "@/components/firebase/FirebaseAnalytics";
+import { FirebaseAuthBootstrap } from "@/components/firebase/FirebaseAuthBootstrap";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,6 +32,7 @@ export default function RootLayout({
     >
       <body className="min-h-full bg-zinc-50 font-sans text-zinc-900">
         <FirebaseAnalytics />
+        <FirebaseAuthBootstrap />
         <AppShell>{children}</AppShell>
       </body>
     </html>

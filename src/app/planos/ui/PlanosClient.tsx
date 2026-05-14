@@ -3,38 +3,17 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import {
+  deletePlano,
+  listAdministradoras,
+  listPlanos,
+  type AdministradoraRow,
+  type PlanoRow,
+} from "@/lib/firestore-db";
 
-type AdministradoraMini = {
-  id: string;
-  nome: string;
-  cnpj: string;
-};
+type Plano = PlanoRow;
 
-type Plano = {
-  id: string;
-  administradoraId: string;
-  administradora: AdministradoraMini;
-  nome: string;
-  tipoBem: string;
-  valorCreditoCentavos: number | null;
-  createdAt: string;
-};
-
-type Administradora = {
-  id: string;
-  nome: string;
-  cnpj: string;
-};
-
-async function api<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
-  const res = await fetch(input, init);
-  if (!res.ok) {
-    const data = (await res.json().catch(() => ({}))) as { error?: string };
-    throw new Error(data.error || "Erro inesperado.");
-  }
-  if (res.status === 204) return undefined as T;
-  return (await res.json()) as T;
-}
+type Administradora = Pick<AdministradoraRow, "id" | "nome" | "cnpj">;
 
 const controlClass =
   "h-10 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 outline-none focus-visible:border-zinc-400 focus-visible:ring-2 focus-visible:ring-zinc-300/60";
@@ -63,10 +42,10 @@ export default function PlanosClient() {
     setError(null);
     try {
       const [adms, planos] = await Promise.all([
-        api<Administradora[]>("/api/administradoras"),
-        api<Plano[]>("/api/planos"),
+        listAdministradoras(),
+        listPlanos(),
       ]);
-      setAdministradoras(adms);
+      setAdministradoras(adms.map((a) => ({ id: a.id, nome: a.nome, cnpj: a.cnpj })));
       setItems(planos);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro ao carregar.");
@@ -92,7 +71,7 @@ export default function PlanosClient() {
   async function onDelete(id: string) {
     if (!confirm("Excluir este plano?")) return;
     try {
-      await api<void>(`/api/planos/${id}`, { method: "DELETE" });
+      await deletePlano(id);
       setItems((prev) => prev.filter((x) => x.id !== id));
     } catch (e) {
       alert(e instanceof Error ? e.message : "Erro ao excluir.");

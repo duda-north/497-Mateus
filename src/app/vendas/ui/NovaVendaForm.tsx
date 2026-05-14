@@ -3,6 +3,11 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import {
+  createVenda,
+  listAdministradoras,
+  listPlanosMiniByAdministradora,
+} from "@/lib/firestore-db";
 
 type Administradora = { id: string; nome: string; cnpj: string };
 type PlanoMini = { id: string; nome: string; tipoBem: string };
@@ -28,16 +33,6 @@ const initialState: FormState = {
   descricao: "",
   observacoes: "",
 };
-
-async function api<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
-  const res = await fetch(input, init);
-  if (!res.ok) {
-    const data = (await res.json().catch(() => ({}))) as { error?: string };
-    throw new Error(data.error || "Erro inesperado.");
-  }
-  if (res.status === 204) return undefined as T;
-  return (await res.json()) as T;
-}
 
 function parseValorToCentavos(input: string): number | null | undefined {
   const t = input.trim();
@@ -94,10 +89,10 @@ export default function NovaVendaForm() {
   useEffect(() => {
     let alive = true;
     setLoadingAdms(true);
-    api<Administradora[]>("/api/administradoras")
+    listAdministradoras()
       .then((data) => {
         if (!alive) return;
-        setAdministradoras(data);
+        setAdministradoras(data.map((a) => ({ id: a.id, nome: a.nome, cnpj: a.cnpj })));
         if (!form.administradoraId && data[0]?.id) {
           setForm((p) => ({ ...p, administradoraId: data[0].id }));
         }
@@ -117,9 +112,7 @@ export default function NovaVendaForm() {
       return;
     }
     let alive = true;
-    void api<PlanoMini[]>(
-      `/api/planos?administradoraId=${encodeURIComponent(form.administradoraId)}`,
-    )
+    void listPlanosMiniByAdministradora(form.administradoraId)
       .then((data) => {
         if (!alive) return;
         setPlanos(data);
@@ -174,10 +167,15 @@ export default function NovaVendaForm() {
 
     setSaving(true);
     try {
-      await api("/api/vendas", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(payload),
+      await createVenda({
+        administradoraId: payload.administradoraId,
+        planoId: payload.planoId,
+        titulo: payload.titulo,
+        status: payload.status,
+        valorCentavos: payload.valorCentavos,
+        dataVenda: form.dataVenda ? new Date(`${form.dataVenda}T00:00:00.000Z`) : null,
+        descricao: payload.descricao,
+        observacoes: payload.observacoes,
       });
       router.push("/vendas");
       router.refresh();

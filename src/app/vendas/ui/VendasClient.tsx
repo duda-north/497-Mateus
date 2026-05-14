@@ -2,41 +2,17 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import {
+  deleteVenda,
+  listAdministradoras,
+  listVendas,
+  type AdministradoraRow,
+  type VendaRow,
+} from "@/lib/firestore-db";
 
-type AdministradoraMini = {
-  id: string;
-  nome: string;
-  cnpj: string;
-};
+type Venda = VendaRow;
 
-type Venda = {
-  id: string;
-  administradoraId: string;
-  administradora: AdministradoraMini;
-  plano: { id: string; nome: string; tipoBem: string } | null;
-  status: "RASCUNHO" | "ENVIADA" | "FECHADA" | "CANCELADA";
-  titulo: string;
-  descricao: string | null;
-  valorCentavos: number | null;
-  dataVenda: string | null;
-  createdAt: string;
-};
-
-type Administradora = {
-  id: string;
-  nome: string;
-  cnpj: string;
-};
-
-async function api<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
-  const res = await fetch(input, init);
-  if (!res.ok) {
-    const data = (await res.json().catch(() => ({}))) as { error?: string };
-    throw new Error(data.error || "Erro inesperado.");
-  }
-  if (res.status === 204) return undefined as T;
-  return (await res.json()) as T;
-}
+type Administradora = Pick<AdministradoraRow, "id" | "nome" | "cnpj">;
 
 const controlClass =
   "h-10 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 outline-none focus-visible:border-zinc-400 focus-visible:ring-2 focus-visible:ring-zinc-300/60";
@@ -93,10 +69,10 @@ export default function VendasClient() {
 
     try {
       const [adms, vendas] = await Promise.all([
-        api<Administradora[]>("/api/administradoras"),
-        api<Venda[]>("/api/vendas"),
+        listAdministradoras(),
+        listVendas(),
       ]);
-      setAdministradoras(adms);
+      setAdministradoras(adms.map((a) => ({ id: a.id, nome: a.nome, cnpj: a.cnpj })));
       setItems(vendas);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro ao carregar.");
@@ -123,7 +99,7 @@ export default function VendasClient() {
   async function onDelete(id: string) {
     if (!confirm("Excluir venda?")) return;
     try {
-      await api<void>(`/api/vendas/${id}`, { method: "DELETE" });
+      await deleteVenda(id);
       setItems((prev) => prev.filter((x) => x.id !== id));
     } catch (e) {
       alert(e instanceof Error ? e.message : "Erro ao excluir.");
