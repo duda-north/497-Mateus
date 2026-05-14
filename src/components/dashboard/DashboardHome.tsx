@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { PageFlowHeader } from "@/components/page-flow/PageFlowHeader";
-import { isFirebaseConfigured } from "@/lib/firebase";
 import { getDashboardCounts } from "@/lib/firestore-db";
 
 export function DashboardHome() {
@@ -15,13 +14,6 @@ export function DashboardHome() {
   const [countsError, setCountsError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isFirebaseConfigured()) {
-      setLoading(false);
-      setCountsError(
-        "Configure as variáveis NEXT_PUBLIC_FIREBASE_* no Netlify (ou .env.local) e publique as regras do Firestore com autenticação anônima ativa.",
-      );
-      return;
-    }
     let alive = true;
     setLoading(true);
     setCountsError(null);
@@ -36,10 +28,7 @@ export function DashboardHome() {
       .catch((e) => {
         if (!alive) return;
         const devDetail = process.env.NODE_ENV === "development" && e instanceof Error ? e.message : null;
-        setCountsError(
-          devDetail ??
-            "Verifique no Firebase: Firestore ativo, login anônimo habilitado (Authentication) e regras que permitam leitura/escrita para usuários autenticados.",
-        );
+        setCountsError(devDetail ?? "Não foi possível carregar os totais.");
       })
       .finally(() => {
         if (alive) setLoading(false);
@@ -63,7 +52,7 @@ export function DashboardHome() {
       <PageFlowHeader
         crumbs={[{ label: "Dashboard" }]}
         title="Dashboard"
-        description="Indicadores da base cadastrada e atalhos para administradoras, planos e vendas."
+        description="Indicadores da base cadastrada e atalhos para administradoras, planos e vendas. Os dados ficam salvos neste navegador (modo demonstração)."
       />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

@@ -1,60 +1,10 @@
 /**
- * Firestore só no cliente (sem API routes / sem Admin SDK).
- * Exige Auth anônima ativa + regras que permitam `request.auth != null`.
+ * Base operacional só no navegador (localStorage), sem Firebase.
+ * Ideal para demo / homologação: dados ficam neste aparelho e navegador.
  */
-import { getAuth, signInAnonymously } from "firebase/auth";
-import {
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs,
-  getFirestore,
-  query,
-  serverTimestamp,
-  setDoc,
-  Timestamp,
-  updateDoc,
-  where,
-  type DocumentData,
-} from "firebase/firestore";
-import { getFirebaseApp } from "@/lib/firebase";
-
-const C = {
-  administradoras: "administradoras",
-  planos: "planos",
-  vendas: "vendas",
-} as const;
+const STORAGE_KEY = "consorcio-ops-operational-v1";
 
 export type VendaStatus = "RASCUNHO" | "ENVIADA" | "FECHADA" | "CANCELADA";
-
-function db() {
-  const app = getFirebaseApp();
-  if (!app) throw new Error("Configure as variáveis NEXT_PUBLIC_FIREBASE_* no Netlify.");
-  return getFirestore(app);
-}
-
-export async function ensureAnonymousAuth(): Promise<void> {
-  const app = getFirebaseApp();
-  if (!app) throw new Error("Configure as variáveis NEXT_PUBLIC_FIREBASE_*.");
-  const auth = getAuth(app);
-  if (!auth.currentUser) {
-    await signInAnonymously(auth);
-  }
-}
-
-function tsIso(v: unknown): string {
-  if (v instanceof Timestamp) return v.toDate().toISOString();
-  if (v && typeof v === "object" && "toDate" in v && typeof (v as { toDate: () => Date }).toDate === "function") {
-    return (v as { toDate: () => Date }).toDate().toISOString();
-  }
-  return new Date(0).toISOString();
-}
-
-function dataVendaIso(v: unknown): string | null {
-  if (v === null || v === undefined) return null;
-  return tsIso(v);
-}
 
 export type AdministradoraRow = {
   id: string;
@@ -74,27 +24,6 @@ export type AdministradoraRow = {
   createdAt: string;
   updatedAt: string;
 };
-
-function mapAdministradora(id: string, d: DocumentData): AdministradoraRow {
-  return {
-    id,
-    nome: d.nome as string,
-    cnpj: d.cnpj as string,
-    telefone: (d.telefone as string | null) ?? null,
-    email: (d.email as string | null) ?? null,
-    contatoPrincipal: (d.contatoPrincipal as string | null) ?? null,
-    enderecoLogradouro: (d.enderecoLogradouro as string | null) ?? null,
-    enderecoNumero: (d.enderecoNumero as string | null) ?? null,
-    enderecoComplemento: (d.enderecoComplemento as string | null) ?? null,
-    enderecoBairro: (d.enderecoBairro as string | null) ?? null,
-    enderecoCidade: (d.enderecoCidade as string | null) ?? null,
-    enderecoUf: (d.enderecoUf as string | null) ?? null,
-    enderecoCep: (d.enderecoCep as string | null) ?? null,
-    regrasOperacionaisJson: (d.regrasOperacionaisJson as string | null) ?? null,
-    createdAt: tsIso(d.createdAt),
-    updatedAt: tsIso(d.updatedAt),
-  };
-}
 
 export type AdministradoraMini = { id: string; nome: string; cnpj: string };
 
@@ -130,145 +59,171 @@ export type VendaRow = {
   updatedAt: string;
 };
 
-async function admMini(id: string): Promise<AdministradoraMini | null> {
-  const s = await getDoc(doc(db(), C.administradoras, id));
-  if (!s.exists()) return null;
-  const d = s.data()!;
-  return { id, nome: d.nome as string, cnpj: d.cnpj as string };
+type PlanoDoc = Omit<PlanoRow, "administradora">;
+type VendaDoc = Omit<VendaRow, "administradora" | "plano">;
+
+type DbState = {
+  administradoras: AdministradoraRow[];
+  planos: PlanoDoc[];
+  vendas: VendaDoc[];
+};
+
+function emptyDb(): DbState {
+  return { administradoras: [], planos: [], vendas: [] };
 }
 
-async function planoMini(id: string | null | undefined): Promise<PlanoMini | null> {
+function nowIso(): string {
+  return new Date().toISOString();
+}
+
+function readDb(): DbState {
+  if (typeof window === "undefined") return emptyDb();
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return emptyDb();
+    const parsed = JSON.parse(raw) as DbState;
+    if (!parsed || !Array.isArray(parsed.administradoras)) return emptyDb();
+    return {
+      administradoras: parsed.administradoras,
+      planos: Array.isArray(parsed.planos) ? parsed.planos : [],
+      vendas: Array.isArray(parsed.vendas) ? parsed.vendas : [],
+    };
+  } catch {
+    return emptyDb();
+  }
+}
+
+function writeDb(s: DbState): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+}
+
+function newId(): string {
+  return crypto.randomUUID();
+}
+
+function admMini(db: DbState, id: string): AdministradoraMini | null {
+  const a = db.administradoras.find((x) => x.id === id);
+  if (!a) return null;
+  return { id: a.id, nome: a.nome, cnpj: a.cnpj };
+}
+
+function planoMini(db: DbState, id: string | null | undefined): PlanoMini | null {
   if (!id) return null;
-  const s = await getDoc(doc(db(), C.planos, id));
-  if (!s.exists()) return null;
-  const d = s.data()!;
-  return { id, nome: d.nome as string, tipoBem: d.tipoBem as string };
+  const p = db.planos.find((x) => x.id === id);
+  if (!p) return null;
+  return { id: p.id, nome: p.nome, tipoBem: p.tipoBem };
+}
+
+function toPlanoRow(db: DbState, p: PlanoDoc): PlanoRow | null {
+  const adm = admMini(db, p.administradoraId);
+  if (!adm) return null;
+  return { ...p, administradora: adm };
+}
+
+async function mapVenda(db: DbState, v: VendaDoc): Promise<VendaRow> {
+  const adm = admMini(db, v.administradoraId);
+  if (!adm) throw new Error("Dados inconsistentes.");
+  return {
+    ...v,
+    administradora: adm,
+    plano: planoMini(db, v.planoId),
+  };
+}
+
+/** Mantida para compatibilidade; não faz nada sem Firebase. */
+export async function ensureAnonymousAuth(): Promise<void> {
+  return;
 }
 
 export async function listAdministradoras(): Promise<AdministradoraRow[]> {
-  await ensureAnonymousAuth();
-  const snap = await getDocs(collection(db(), C.administradoras));
-  const rows = snap.docs.map((x) => mapAdministradora(x.id, x.data()));
+  const db = readDb();
+  const rows = [...db.administradoras];
   rows.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   return rows;
 }
 
 export async function getAdministradora(id: string): Promise<AdministradoraRow | null> {
-  await ensureAnonymousAuth();
-  const s = await getDoc(doc(db(), C.administradoras, id));
-  if (!s.exists()) return null;
-  return mapAdministradora(s.id, s.data());
+  return readDb().administradoras.find((x) => x.id === id) ?? null;
 }
 
 async function cnpjEmUso(cnpj: string, excludeId?: string): Promise<boolean> {
-  const q = query(collection(db(), C.administradoras), where("cnpj", "==", cnpj.trim()));
-  const snap = await getDocs(q);
-  if (snap.empty) return false;
-  if (!excludeId) return true;
-  return snap.docs.some((d) => d.id !== excludeId);
+  const t = cnpj.trim();
+  const db = readDb();
+  const hit = db.administradoras.find((a) => a.cnpj.trim() === t && a.id !== excludeId);
+  return Boolean(hit);
 }
 
 export async function createAdministradora(
   data: Omit<AdministradoraRow, "id" | "createdAt" | "updatedAt">,
 ): Promise<AdministradoraRow> {
-  await ensureAnonymousAuth();
   if (await cnpjEmUso(data.cnpj)) throw new Error("CNPJ já cadastrado.");
-  const ref = doc(collection(db(), C.administradoras));
-  await setDoc(ref, {
-    ...data,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-  });
-  const s = await getDoc(ref);
-  return mapAdministradora(s.id, s.data()!);
+  const db = readDb();
+  const ts = nowIso();
+  const row: AdministradoraRow = { ...data, id: newId(), createdAt: ts, updatedAt: ts };
+  db.administradoras.push(row);
+  writeDb(db);
+  return row;
 }
 
 export async function updateAdministradora(
   id: string,
   patch: Partial<Omit<AdministradoraRow, "id" | "createdAt" | "updatedAt">>,
 ): Promise<AdministradoraRow> {
-  await ensureAnonymousAuth();
   if (patch.cnpj !== undefined && (await cnpjEmUso(patch.cnpj, id))) {
     throw new Error("CNPJ já cadastrado.");
   }
-  const clean: Record<string, unknown> = { updatedAt: serverTimestamp() };
-  for (const [k, v] of Object.entries(patch)) {
-    if (v !== undefined) clean[k] = v;
-  }
-  await updateDoc(doc(db(), C.administradoras, id), clean);
-  const r = await getAdministradora(id);
-  if (!r) throw new Error("Administradora não encontrada.");
-  return r;
+  const db = readDb();
+  const i = db.administradoras.findIndex((x) => x.id === id);
+  if (i < 0) throw new Error("Administradora não encontrada.");
+  const cur = db.administradoras[i]!;
+  const next: AdministradoraRow = {
+    ...cur,
+    ...Object.fromEntries(Object.entries(patch).filter(([, v]) => v !== undefined)),
+    id: cur.id,
+    createdAt: cur.createdAt,
+    updatedAt: nowIso(),
+  } as AdministradoraRow;
+  db.administradoras[i] = next;
+  writeDb(db);
+  return next;
 }
 
 export async function deleteAdministradora(id: string): Promise<void> {
-  await ensureAnonymousAuth();
-  const [pq, vq] = await Promise.all([
-    getDocs(query(collection(db(), C.planos), where("administradoraId", "==", id))),
-    getDocs(query(collection(db(), C.vendas), where("administradoraId", "==", id))),
-  ]);
-  if (!pq.empty) throw new Error("Existem planos vinculados a esta administradora.");
-  if (!vq.empty) throw new Error("Existem vendas vinculadas a esta administradora.");
-  await deleteDoc(doc(db(), C.administradoras, id));
+  const db = readDb();
+  if (db.planos.some((p) => p.administradoraId === id)) {
+    throw new Error("Existem planos vinculados a esta administradora.");
+  }
+  if (db.vendas.some((v) => v.administradoraId === id)) {
+    throw new Error("Existem vendas vinculadas a esta administradora.");
+  }
+  db.administradoras = db.administradoras.filter((x) => x.id !== id);
+  writeDb(db);
 }
 
 export async function listPlanos(): Promise<PlanoRow[]> {
-  await ensureAnonymousAuth();
-  const snap = await getDocs(collection(db(), C.planos));
+  const db = readDb();
   const out: PlanoRow[] = [];
-  for (const x of snap.docs) {
-    const d = x.data();
-    const adm = await admMini(d.administradoraId as string);
-    if (!adm) continue;
-    out.push({
-      id: x.id,
-      administradoraId: d.administradoraId as string,
-      nome: d.nome as string,
-      tipoBem: d.tipoBem as string,
-      valorCreditoCentavos: (d.valorCreditoCentavos as number | null) ?? null,
-      regrasComissaoJson: (d.regrasComissaoJson as string | null) ?? null,
-      regrasRecebimentoJson: (d.regrasRecebimentoJson as string | null) ?? null,
-      regrasEstornoJson: (d.regrasEstornoJson as string | null) ?? null,
-      createdAt: tsIso(d.createdAt),
-      updatedAt: tsIso(d.updatedAt),
-      administradora: adm,
-    });
+  for (const p of db.planos) {
+    const row = toPlanoRow(db, p);
+    if (row) out.push(row);
   }
   out.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   return out;
 }
 
 export async function listPlanosMiniByAdministradora(administradoraId: string): Promise<PlanoMini[]> {
-  await ensureAnonymousAuth();
-  const snap = await getDocs(
-    query(collection(db(), C.planos), where("administradoraId", "==", administradoraId)),
-  );
-  return snap.docs.map((x) => {
-    const d = x.data();
-    return { id: x.id, nome: d.nome as string, tipoBem: d.tipoBem as string };
-  });
+  const db = readDb();
+  return db.planos
+    .filter((p) => p.administradoraId === administradoraId)
+    .map((p) => ({ id: p.id, nome: p.nome, tipoBem: p.tipoBem }));
 }
 
 export async function getPlano(id: string): Promise<PlanoRow | null> {
-  await ensureAnonymousAuth();
-  const s = await getDoc(doc(db(), C.planos, id));
-  if (!s.exists()) return null;
-  const d = s.data()!;
-  const adm = await admMini(d.administradoraId as string);
-  if (!adm) return null;
-  return {
-    id: s.id,
-    administradoraId: d.administradoraId as string,
-    nome: d.nome as string,
-    tipoBem: d.tipoBem as string,
-    valorCreditoCentavos: (d.valorCreditoCentavos as number | null) ?? null,
-    regrasComissaoJson: (d.regrasComissaoJson as string | null) ?? null,
-    regrasRecebimentoJson: (d.regrasRecebimentoJson as string | null) ?? null,
-    regrasEstornoJson: (d.regrasEstornoJson as string | null) ?? null,
-    createdAt: tsIso(d.createdAt),
-    updatedAt: tsIso(d.updatedAt),
-    administradora: adm,
-  };
+  const db = readDb();
+  const p = db.planos.find((x) => x.id === id);
+  if (!p) return null;
+  return toPlanoRow(db, p);
 }
 
 export async function createPlano(data: {
@@ -280,16 +235,24 @@ export async function createPlano(data: {
   regrasRecebimentoJson: string | null;
   regrasEstornoJson: string | null;
 }): Promise<PlanoRow> {
-  await ensureAnonymousAuth();
-  const adm = await admMini(data.administradoraId);
-  if (!adm) throw new Error("Administradora não encontrada.");
-  const ref = doc(collection(db(), C.planos));
-  await setDoc(ref, {
-    ...data,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-  });
-  return (await getPlano(ref.id))!;
+  const db = readDb();
+  if (!admMini(db, data.administradoraId)) throw new Error("Administradora não encontrada.");
+  const ts = nowIso();
+  const doc: PlanoDoc = {
+    id: newId(),
+    administradoraId: data.administradoraId,
+    nome: data.nome,
+    tipoBem: data.tipoBem,
+    valorCreditoCentavos: data.valorCreditoCentavos,
+    regrasComissaoJson: data.regrasComissaoJson,
+    regrasRecebimentoJson: data.regrasRecebimentoJson,
+    regrasEstornoJson: data.regrasEstornoJson,
+    createdAt: ts,
+    updatedAt: ts,
+  };
+  db.planos.push(doc);
+  writeDb(db);
+  return (await getPlano(doc.id))!;
 }
 
 export async function updatePlano(
@@ -304,72 +267,56 @@ export async function updatePlano(
     regrasEstornoJson: string | null;
   }>,
 ): Promise<PlanoRow> {
-  await ensureAnonymousAuth();
-  if (patch.administradoraId) {
-    const a = await admMini(patch.administradoraId);
-    if (!a) throw new Error("Administradora não encontrada.");
+  const db = readDb();
+  const i = db.planos.findIndex((x) => x.id === id);
+  if (i < 0) throw new Error("Plano não encontrado.");
+  if (patch.administradoraId && !admMini(db, patch.administradoraId)) {
+    throw new Error("Administradora não encontrada.");
   }
-  const clean: Record<string, unknown> = { updatedAt: serverTimestamp() };
-  for (const [k, v] of Object.entries(patch)) {
-    if (v !== undefined) clean[k] = v;
-  }
-  await updateDoc(doc(db(), C.planos, id), clean);
-  const r = await getPlano(id);
-  if (!r) throw new Error("Plano não encontrado.");
-  return r;
+  const cur = db.planos[i]!;
+  const merged: PlanoDoc = {
+    ...cur,
+    ...Object.fromEntries(Object.entries(patch).filter(([, v]) => v !== undefined)),
+    id: cur.id,
+    createdAt: cur.createdAt,
+    updatedAt: nowIso(),
+  } as PlanoDoc;
+  db.planos[i] = merged;
+  writeDb(db);
+  return (await getPlano(id))!;
 }
 
 export async function deletePlano(id: string): Promise<void> {
-  await ensureAnonymousAuth();
-  const q = await getDocs(query(collection(db(), C.vendas), where("planoId", "==", id)));
-  if (!q.empty) throw new Error("Existem vendas vinculadas a este plano.");
-  await deleteDoc(doc(db(), C.planos, id));
-}
-
-async function mapVenda(id: string, d: DocumentData): Promise<VendaRow> {
-  const adm = await admMini(d.administradoraId as string);
-  if (!adm) throw new Error("Dados inconsistentes.");
-  const plano = await planoMini(d.planoId as string | null);
-  return {
-    id,
-    administradoraId: d.administradoraId as string,
-    planoId: (d.planoId as string | null) ?? null,
-    administradora: adm,
-    plano,
-    status: d.status as VendaStatus,
-    titulo: d.titulo as string,
-    descricao: (d.descricao as string | null) ?? null,
-    valorCentavos: (d.valorCentavos as number | null) ?? null,
-    dataVenda: dataVendaIso(d.dataVenda),
-    observacoes: (d.observacoes as string | null) ?? null,
-    createdAt: tsIso(d.createdAt),
-    updatedAt: tsIso(d.updatedAt),
-  };
+  const db = readDb();
+  if (db.vendas.some((v) => v.planoId === id)) {
+    throw new Error("Existem vendas vinculadas a este plano.");
+  }
+  db.planos = db.planos.filter((x) => x.id !== id);
+  writeDb(db);
 }
 
 export async function listVendas(): Promise<VendaRow[]> {
-  await ensureAnonymousAuth();
-  const snap = await getDocs(collection(db(), C.vendas));
+  const db = readDb();
   const rows: VendaRow[] = [];
-  for (const x of snap.docs) {
-    rows.push(await mapVenda(x.id, x.data()));
+  for (const v of db.vendas) {
+    rows.push(await mapVenda(db, v));
   }
   rows.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   return rows;
 }
 
 export async function getVenda(id: string): Promise<VendaRow | null> {
-  await ensureAnonymousAuth();
-  const s = await getDoc(doc(db(), C.vendas, id));
-  if (!s.exists()) return null;
-  return mapVenda(s.id, s.data());
+  const db = readDb();
+  const v = db.vendas.find((x) => x.id === id);
+  if (!v) return null;
+  return mapVenda(db, v);
 }
 
-async function assertPlanoBelongs(planoId: string | null, administradoraId: string) {
+function assertPlanoBelongs(db: DbState, planoId: string | null, administradoraId: string): void {
   if (!planoId) return;
-  const s = await getDoc(doc(db(), C.planos, planoId));
-  if (!s.exists()) throw new Error("Plano não encontrado.");
-  if ((s.data()!.administradoraId as string) !== administradoraId) {
+  const p = db.planos.find((x) => x.id === planoId);
+  if (!p) throw new Error("Plano não encontrado.");
+  if (p.administradoraId !== administradoraId) {
     throw new Error("O plano não pertence à administradora selecionada.");
   }
 }
@@ -384,24 +331,26 @@ export async function createVenda(data: {
   dataVenda: Date | null;
   observacoes: string | null;
 }): Promise<VendaRow> {
-  await ensureAnonymousAuth();
-  const adm = await admMini(data.administradoraId);
-  if (!adm) throw new Error("Administradora não encontrada.");
-  await assertPlanoBelongs(data.planoId, data.administradoraId);
-  const ref = doc(collection(db(), C.vendas));
-  await setDoc(ref, {
+  const db = readDb();
+  if (!admMini(db, data.administradoraId)) throw new Error("Administradora não encontrada.");
+  assertPlanoBelongs(db, data.planoId, data.administradoraId);
+  const ts = nowIso();
+  const doc: VendaDoc = {
+    id: newId(),
     administradoraId: data.administradoraId,
     planoId: data.planoId,
     status: data.status,
     titulo: data.titulo,
     descricao: data.descricao,
     valorCentavos: data.valorCentavos,
-    dataVenda: data.dataVenda ? Timestamp.fromDate(data.dataVenda) : null,
+    dataVenda: data.dataVenda ? data.dataVenda.toISOString() : null,
     observacoes: data.observacoes,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-  });
-  return (await getVenda(ref.id))!;
+    createdAt: ts,
+    updatedAt: ts,
+  };
+  db.vendas.push(doc);
+  writeDb(db);
+  return (await getVenda(doc.id))!;
 }
 
 export async function updateVenda(
@@ -417,37 +366,42 @@ export async function updateVenda(
     observacoes: string | null;
   }>,
 ): Promise<VendaRow> {
-  await ensureAnonymousAuth();
-  const cur = await getDoc(doc(db(), C.vendas, id));
-  if (!cur.exists()) throw new Error("Venda não encontrada.");
-  const nextAdm = patch.administradoraId ?? (cur.data()!.administradoraId as string);
-  const nextPlano =
-    patch.planoId !== undefined ? patch.planoId : (cur.data()!.planoId as string | null);
-  await assertPlanoBelongs(nextPlano, nextAdm);
-  if (patch.administradoraId) {
-    const a = await admMini(patch.administradoraId);
-    if (!a) throw new Error("Administradora não encontrada.");
+  const db = readDb();
+  const i = db.vendas.findIndex((x) => x.id === id);
+  if (i < 0) throw new Error("Venda não encontrada.");
+  const cur = db.vendas[i]!;
+  const nextAdm = patch.administradoraId ?? cur.administradoraId;
+  const nextPlano = patch.planoId !== undefined ? patch.planoId : cur.planoId;
+  assertPlanoBelongs(db, nextPlano, nextAdm);
+  if (patch.administradoraId && !admMini(db, patch.administradoraId)) {
+    throw new Error("Administradora não encontrada.");
   }
-  const clean: Record<string, unknown> = { updatedAt: serverTimestamp() };
-  if (patch.administradoraId !== undefined) clean.administradoraId = patch.administradoraId;
-  if (patch.planoId !== undefined) clean.planoId = patch.planoId;
-  if (patch.status !== undefined) clean.status = patch.status;
-  if (patch.titulo !== undefined) clean.titulo = patch.titulo;
-  if (patch.descricao !== undefined) clean.descricao = patch.descricao;
-  if (patch.valorCentavos !== undefined) clean.valorCentavos = patch.valorCentavos;
-  if (patch.observacoes !== undefined) clean.observacoes = patch.observacoes;
-  if (patch.dataVenda !== undefined) {
-    clean.dataVenda = patch.dataVenda ? Timestamp.fromDate(patch.dataVenda) : null;
-  }
-  await updateDoc(doc(db(), C.vendas, id), clean);
-  const r = await getVenda(id);
-  if (!r) throw new Error("Venda não encontrada.");
-  return r;
+  const merged: VendaDoc = {
+    ...cur,
+    administradoraId: patch.administradoraId ?? cur.administradoraId,
+    planoId: patch.planoId !== undefined ? patch.planoId : cur.planoId,
+    status: patch.status ?? cur.status,
+    titulo: patch.titulo ?? cur.titulo,
+    descricao: patch.descricao !== undefined ? patch.descricao : cur.descricao,
+    valorCentavos: patch.valorCentavos !== undefined ? patch.valorCentavos : cur.valorCentavos,
+    observacoes: patch.observacoes !== undefined ? patch.observacoes : cur.observacoes,
+    dataVenda:
+      patch.dataVenda !== undefined
+        ? patch.dataVenda
+          ? patch.dataVenda.toISOString()
+          : null
+        : cur.dataVenda,
+    updatedAt: nowIso(),
+  };
+  db.vendas[i] = merged;
+  writeDb(db);
+  return (await getVenda(id))!;
 }
 
 export async function deleteVenda(id: string): Promise<void> {
-  await ensureAnonymousAuth();
-  await deleteDoc(doc(db(), C.vendas, id));
+  const db = readDb();
+  db.vendas = db.vendas.filter((x) => x.id !== id);
+  writeDb(db);
 }
 
 export async function getDashboardCounts(): Promise<{
@@ -456,18 +410,11 @@ export async function getDashboardCounts(): Promise<{
   nVendas: number;
   nVendasFechadas: number;
 }> {
-  await ensureAnonymousAuth();
-  const d = db();
-  const [a, p, v, vf] = await Promise.all([
-    getDocs(collection(d, C.administradoras)),
-    getDocs(collection(d, C.planos)),
-    getDocs(collection(d, C.vendas)),
-    getDocs(query(collection(d, C.vendas), where("status", "==", "FECHADA"))),
-  ]);
+  const db = readDb();
   return {
-    nAdministradoras: a.size,
-    nPlanos: p.size,
-    nVendas: v.size,
-    nVendasFechadas: vf.size,
+    nAdministradoras: db.administradoras.length,
+    nPlanos: db.planos.length,
+    nVendas: db.vendas.length,
+    nVendasFechadas: db.vendas.filter((v) => v.status === "FECHADA").length,
   };
 }
