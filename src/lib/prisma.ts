@@ -1,7 +1,6 @@
-import path from "node:path";
-import { pathToFileURL } from "node:url";
 import { PrismaLibSql } from "@prisma/adapter-libsql";
 import { PrismaClient } from "@/generated/prisma/client";
+import { resolveDatabaseUrl } from "../../database-url";
 
 /** Bust `globalThis` cache when the DB stack changes (e.g. better-sqlite3 → libsql). */
 const PRISMA_SINGLETON_VERSION = "libsql-file-v2";
@@ -11,23 +10,10 @@ const globalForPrisma = globalThis as unknown as {
   prismaSingletonVersion?: string;
 };
 
-function databaseUrl(): string {
-  const raw = process.env["DATABASE_URL"]?.trim();
-  if (raw && !raw.startsWith("file:")) {
-    return raw;
-  }
-  const relative =
-    raw?.replace(/^file:/i, "").replace(/^\/+/, "") ?? "dev.db";
-  const absolute = path.isAbsolute(relative)
-    ? relative
-    : path.join(/* turbopackIgnore: true */ process.cwd(), relative);
-  return pathToFileURL(absolute).href;
-}
-
 function createPrismaClient() {
   return new PrismaClient({
     adapter: new PrismaLibSql({
-      url: databaseUrl(),
+      url: resolveDatabaseUrl(),
     }),
     log: process.env["NODE_ENV"] === "development" ? ["error", "warn"] : ["error"],
   });

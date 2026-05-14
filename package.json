@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3030 --webpack",
+    "prebuild": "npx prisma generate && npx prisma migrate deploy",
     "build": "next build",
+    "postinstall": "prisma generate",
     "start": "next start -p 3030",
     "lint": "eslint"
   },
